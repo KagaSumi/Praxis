@@ -10,8 +10,16 @@ export default function RightSidebar() {
   const [user, setUser] = useState<any | null>(null);
   const [questionsCount, setQuestionsCount] = useState<number>(0);
   const [answersCount, setAnswersCount] = useState<number>(0);
-  const [recentQuestion, setRecentQuestion] = useState<{ questionId: number; title: string } | null>(null);
-  const [recentAnswer, setRecentAnswer] = useState<{ answerId: number; content: string; questionId: number; questionTitle: string } | null>(null);
+  const [recentQuestion, setRecentQuestion] = useState<{
+    questionId: number;
+    title: string;
+  } | null>(null);
+  const [recentAnswer, setRecentAnswer] = useState<{
+    answerId: number;
+    content: string;
+    questionId: number;
+    questionTitle: string;
+  } | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -19,7 +27,9 @@ export default function RightSidebar() {
         if (!isLoggedIn || !userId) return;
 
         // get user info from backend server
-        const userRes = await fetch(`http://localhost:3000/api/users/${userId}`);
+        const userRes = await fetch(
+          `http://localhost:3000/api/users/${userId}`,
+        );
         const userJson = userRes.ok ? await userRes.json() : null;
         setUser(userJson);
 
@@ -31,24 +41,40 @@ export default function RightSidebar() {
         setQuestionsCount(myQuestions.length);
         if (myQuestions.length > 0) {
           // choose latest by question
-          const sorted = myQuestions.slice().sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
-          setRecentQuestion({ questionId: sorted[0].questionId, title: sorted[0].title });
+          const sorted = myQuestions
+            .slice()
+            .sort(
+              (a, b) =>
+                new Date(b.createdAt || 0).getTime() -
+                new Date(a.createdAt || 0).getTime(),
+            );
+          setRecentQuestion({
+            questionId: sorted[0].questionId,
+            title: sorted[0].title,
+          });
         } else {
           setRecentQuestion(null);
         }
 
-        const aRes = await fetch(`http://localhost:3000/api/users/${userId}/answers`);
+        const aRes = await fetch(
+          `http://localhost:3000/api/users/${userId}/answers`,
+        );
         let aJson: any[] = [];
         if (aRes.ok) aJson = await aRes.json();
         setAnswersCount(aJson.length);
         if (aJson.length > 0) {
           const a = aJson[0];
-          setRecentAnswer({ answerId: a.answerId, content: a.content, questionId: a.questionId, questionTitle: a.questionTitle });
+          setRecentAnswer({
+            answerId: a.answerId,
+            content: a.content,
+            questionId: a.questionId,
+            questionTitle: a.questionTitle,
+          });
         } else {
           setRecentAnswer(null);
         }
       } catch (err) {
-        console.error('Failed to load right sidebar data', err);
+        console.error("Failed to load right sidebar data", err);
       }
     }
 
@@ -63,9 +89,14 @@ export default function RightSidebar() {
         <Card>
           <div className="flex items-center gap-4">
             <img
-              alt={user ? `${user.first_name} ${user.last_name}` : "User avatar"}
+              alt={
+                user ? `${user.first_name} ${user.last_name}` : "User avatar"
+              }
               className="h-16 w-16 rounded-full object-cover"
-              src={(user && user.avatar) || "https://www.gravatar.com/avatar/?d=mp&s=140"}
+              src={
+                (user && user.avatar) ||
+                "https://www.gravatar.com/avatar/?d=mp&s=140"
+              }
             />
             <Link href="/profile">
               <div>
@@ -82,18 +113,25 @@ export default function RightSidebar() {
           <div className="mt-4 grid grid-cols-3 gap-2">
             <Stat label="Questions" value={questionsCount} />
             <Stat label="Answers" value={answersCount} />
-            <Stat label="Reputation" value={user ? user.score ?? 0 : 0} />
+            <Stat label="Reputation" value={user ? (user.score ?? 0) : 0} />
           </div>
         </Card>
 
         <Card>
-          <div className="mb-3 text-sm font-semibold text-slate-900">Recent Activity</div>
+          <div className="mb-3 text-sm font-semibold text-slate-900">
+            Recent Activity
+          </div>
           <div className="space-y-3 text-sm">
             {recentAnswer ? (
               <div>
                 <div className="text-slate-500">Answered:</div>
-                <Link href={`/question/${recentAnswer.questionId}`} className="text-slate-800 hover:underline">
-                  {recentAnswer.content.length > 120 ? `${recentAnswer.content.slice(0, 117)}...` : recentAnswer.content}
+                <Link
+                  href={`/question/${recentAnswer.questionId}`}
+                  className="text-slate-800 hover:underline"
+                >
+                  {recentAnswer.content.length > 120
+                    ? `${recentAnswer.content.slice(0, 117)}...`
+                    : recentAnswer.content}
                 </Link>
               </div>
             ) : (
@@ -103,8 +141,13 @@ export default function RightSidebar() {
             {recentQuestion ? (
               <div>
                 <div className="text-slate-500">Asked:</div>
-                <Link href={`/question/${recentQuestion.questionId}`} className="text-slate-800 hover:underline">
-                  {recentQuestion.title.length > 120 ? `${recentQuestion.title.slice(0, 117)}...` : recentQuestion.title}
+                <Link
+                  href={`/question/${recentQuestion.questionId}`}
+                  className="text-slate-800 hover:underline"
+                >
+                  {recentQuestion.title.length > 120
+                    ? `${recentQuestion.title.slice(0, 117)}...`
+                    : recentQuestion.title}
                 </Link>
               </div>
             ) : (
