@@ -75,6 +75,17 @@ class AnswerService {
       const answer = answers[0];
       const voteCounts = await this.getVoteCounts(answer.answer_id);
 
+      // Get all the answer's comments
+      const [answerComments] = await pool.execute(
+        `SELECT a.answer_id, a.body, a.created_at,
+                  u.user_id, u.first_name, u.last_name
+          FROM Comment a
+          JOIN User u ON a.user_id = u.user_id
+          WHERE a.answer_id = ?
+          ORDER BY a.created_at ASC`,
+        [answer.answer_id],
+      );
+
       return {
         answerId: answer.answer_id,
         questionId: answer.question_id,
@@ -89,6 +100,7 @@ class AnswerService {
         userId: answer.user_id,
         upVotes: voteCounts.upVotes,
         downVotes: voteCounts.downVotes,
+        comments: answerComments
       };
     } catch (err) {
       console.error("Error getting answer:", err);
