@@ -24,16 +24,23 @@ export default function CommentView({
           </span>
           <span className="text-slate-500"> {comment.created_at}</span>
           {/*{isOwner ? (*/}
-          <div className="flex flex-row gap-2">
-            <button onClick={onEdit} className="text-slate-500 cursor-pointer">
-              Edit
-            </button>
-            <button
-              onClick={onDelete}
-              className="text-slate-500 cursor-pointer"
-            >
-              Delete
-            </button>
+          <div>
+            {isOwner ? (
+              <div className="flex flex-row gap-2">
+                <button
+                  onClick={onEdit}
+                  className="text-slate-500 cursor-pointer"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={onDelete}
+                  className="text-slate-500 cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
+            ) : null}
           </div>
           {/*) : null}*/}
         </li>
