@@ -1,13 +1,17 @@
 "use client";
+import { useEffect, useState } from "react";
+import { formatDate } from "../../../helpers/formatDate";
+
 // components
 import Card from "../Card";
-import { useEffect, useState } from "react";
 import Tag from "../Tag";
-import { formatDate } from '../../../helpers/formatDate';
+import CommentCard from "../CommentCard/CommentCard";
 import AnswerForm from "../../AnswerForm";
+import CommentForm from "../../CommentForm";
 
 // model
 import { QuestionWithAnswer } from "../../../model/QuestionModel";
+import { CommentModel } from "../../../model/CommentModel";
 
 export default function QuestionView({
   question,
@@ -56,7 +60,9 @@ export default function QuestionView({
 
       if (!res.ok) throw new Error("Voting failed");
       const json = await res.json();
-      const newTotal = (json.up_votes ?? json.upVotes ?? 0) - (json.down_votes ?? json.downVotes ?? 0);
+      const newTotal =
+        (json.up_votes ?? json.upVotes ?? 0) -
+        (json.down_votes ?? json.downVotes ?? 0);
       setVotes(newTotal);
     } catch (err) {
       console.error(err);
@@ -71,19 +77,37 @@ export default function QuestionView({
     async function loadCourse() {
       try {
         setCourseLoading(true);
-        const res = await fetch(`http://localhost:3000/api/courses/${question.courseId}`);
+        const res = await fetch(
+          `http://localhost:3000/api/courses/${question.courseId}`,
+        );
         if (!res.ok) throw new Error("Failed to load course");
         const data = await res.json();
         setCourseName(data?.name ?? data?.code ?? null);
       } catch (e) {
         setCourseName(null);
-        console.warn("Unable to fetch course details for question", question.courseId, e);
+        console.warn(
+          "Unable to fetch course details for question",
+          question.courseId,
+          e,
+        );
       } finally {
         setCourseLoading(false);
       }
     }
     loadCourse();
   }, [question.courseId]);
+
+  // comments
+  const comments = question.comments;
+  if (comments !== undefined) {
+    comments.forEach((comment) => {
+      const parseResult = CommentModel.safeParse(comment);
+      if (parseResult.error) {
+        console.error(parseResult.error);
+        throw new Error("Invalid comment data received from API");
+      }
+    });
+  }
 
   return (
     <Card>
@@ -98,11 +122,16 @@ export default function QuestionView({
           {/* info (name, when posted, etc) */}
           <div className="flex flex-row align-center gap-10">
             <p className="text-sm text-slate-500">
-              Asked: <span className="font-semibold">{formatDate(question.createdAt)}</span>
+              Asked:{" "}
+              <span className="font-semibold">
+                {formatDate(question.createdAt)}
+              </span>
             </p>
             <p className="text-sm text-slate-500">
               Modified:{" "}
-              <span className="font-semibold">{formatDate(question.updatedAt)}</span>
+              <span className="font-semibold">
+                {formatDate(question.updatedAt)}
+              </span>
             </p>
             <p className="text-sm text-slate-500">
               Views: <span className="font-semibold">{question.viewCount}</span>
@@ -110,7 +139,9 @@ export default function QuestionView({
             <p className="text-sm text-slate-500">
               Course:{" "}
               <span className="font-semibold">
-                {courseLoading ? "Loading..." : (courseName ?? `#${question.courseId}`)}
+                {courseLoading
+                  ? "Loading..."
+                  : (courseName ?? `#${question.courseId}`)}
               </span>
             </p>
             <div className="text-sm text-slate-500">
@@ -147,7 +178,10 @@ export default function QuestionView({
             {/** voting section */}
             <div className="flex flex-col items-center gap-2">
               {/* Upvote */}
-              <div onClick={() => sendVote(true)} className={`rounded-full border border-gray-300 cursor-pointer hover:bg-blue-100 ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
+              <div
+                onClick={() => sendVote(true)}
+                className={`rounded-full border border-gray-300 cursor-pointer hover:bg-blue-100 ${loading ? "opacity-60 pointer-events-none" : ""}`}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   height="30px"
@@ -160,7 +194,10 @@ export default function QuestionView({
               </div>
               <p className="text-xl">{votes}</p>
               {/* Downvote */}
-              <div onClick={() => sendVote(false)} className={`rounded-full border border-gray-300 cursor-pointer hover:bg-blue-100 ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
+              <div
+                onClick={() => sendVote(false)}
+                className={`rounded-full border border-gray-300 cursor-pointer hover:bg-blue-100 ${loading ? "opacity-60 pointer-events-none" : ""}`}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   height="30px"
@@ -199,6 +236,17 @@ export default function QuestionView({
           ) : (
             <AnswerForm questionId={question.questionId} />
           )}
+        </div>
+        <div className="flex flex-col gap-3 relative pl-10 ">
+          <p className="text-md font-semibold before:absolute before:-top-[15px] before:left-0 before:h-[1px] before:w-full before:bg-slate-300 before:content-[''] ">
+            Comments
+          </p>
+          <div>
+            {question.comments?.map((comment) => (
+              <CommentCard key={comment.comment_id} comment={comment} />
+            ))}
+            <CommentForm questionId={question.questionId} />
+          </div>
         </div>
       </div>
     </Card>

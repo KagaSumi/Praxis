@@ -3,7 +3,7 @@
 import { useState } from "react";
 // model
 import { Answer } from "../../../model/AnswerModel";
-import { formatDate } from '../../../helpers/formatDate';
+import { formatDate } from "../../../helpers/formatDate";
 
 export default function AnswerView({
   answer,
@@ -51,7 +51,9 @@ export default function AnswerView({
 
       if (!res.ok) throw new Error("Voting failed");
       const json = await res.json();
-      const newTotal = (json.up_votes ?? json.upVotes ?? 0) - (json.down_votes ?? json.downVotes ?? 0);
+      const newTotal =
+        (json.up_votes ?? json.upVotes ?? 0) -
+        (json.down_votes ?? json.downVotes ?? 0);
       setVotes(newTotal);
     } catch (err) {
       console.error(err);
@@ -71,7 +73,10 @@ export default function AnswerView({
       <div className="grid grid-cols-[50px_1fr] gap-5">
         <div className="flex flex-col items-center gap-2">
           {/* Upvote */}
-          <div onClick={() => sendVote(true)} className={`rounded-full border border-gray-300 cursor-pointer hover:bg-blue-100 ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
+          <div
+            onClick={() => sendVote(true)}
+            className={`rounded-full border border-gray-300 cursor-pointer hover:bg-blue-100 ${loading ? "opacity-60 pointer-events-none" : ""}`}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               height="30px"
@@ -84,7 +89,10 @@ export default function AnswerView({
           </div>
           <p className="text-xl">{votes}</p>
           {/* Downvote */}
-          <div onClick={() => sendVote(false)} className={`rounded-full border border-gray-300 cursor-pointer hover:bg-blue-100 ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
+          <div
+            onClick={() => sendVote(false)}
+            className={`rounded-full border border-gray-300 cursor-pointer hover:bg-blue-100 ${loading ? "opacity-60 pointer-events-none" : ""}`}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               height="30px"
@@ -128,13 +136,19 @@ export default function AnswerView({
           <p className="cursor-pointer text-blue-500">
             {isAI ? (
               <span className="inline-flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white text-xs font-semibold">AI</span>
-                <span className="text-sm text-slate-600">AI-generated response</span>
+                <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white text-xs font-semibold">
+                  AI
+                </span>
+                <span className="text-sm text-slate-600">
+                  AI-generated response
+                </span>
               </span>
             ) : answer.isAnonymous ? (
               <span className="text-sm text-slate-600">Anonymous</span>
             ) : (
-              <>{answer.firstname} {answer.lastname}</>
+              <>
+                {answer.firstname} {answer.lastname}
+              </>
             )}
           </p>
         </div>

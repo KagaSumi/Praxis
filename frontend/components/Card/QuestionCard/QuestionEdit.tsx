@@ -6,7 +6,7 @@ import { useState } from "react";
 import Card from "../Card";
 import Tag from "../Tag";
 import TagEditor from "../../TagEditor";
-import { formatDate } from '../../../helpers/formatDate';
+import { formatDate } from "../../../helpers/formatDate";
 
 // model
 import { QuestionWithAnswer } from "../../../model/QuestionModel";
@@ -27,7 +27,9 @@ export default function QuestionEdit({
   );
   const [selectedTags, setSelectedTags] = useState<string[]>(() => {
     const t = (question as any).tags || (question as any).tag || [];
-    return Array.isArray(t) ? t.map((s: string) => s.toString().toLowerCase()) : [];
+    return Array.isArray(t)
+      ? t.map((s: string) => s.toString().toLowerCase())
+      : [];
   });
 
   const totalVotes = question.upVotes - question.downVotes;
@@ -55,11 +57,16 @@ export default function QuestionEdit({
           {/* post information */}
           <div className="flex flex-row align-center gap-10">
             <p className="text-sm text-slate-500">
-              Asked: <span className="font-semibold">{formatDate(question.createdAt)}</span>
+              Asked:{" "}
+              <span className="font-semibold">
+                {formatDate(question.createdAt)}
+              </span>
             </p>
             <p className="text-sm text-slate-500">
               Modified:{" "}
-              <span className="font-semibold">{formatDate(question.updatedAt)}</span>
+              <span className="font-semibold">
+                {formatDate(question.updatedAt)}
+              </span>
             </p>
             <p className="text-sm text-slate-500">
               Views: <span className="font-semibold">{question.viewCount}</span>
@@ -89,7 +96,10 @@ export default function QuestionEdit({
                 onChange={(e) => setIsAnonymous(e.target.checked)}
                 className="w-4 h-4"
               />
-              <label htmlFor="question-anonymous" className="text-sm text-slate-600">
+              <label
+                htmlFor="question-anonymous"
+                className="text-sm text-slate-600"
+              >
                 Post anonymously
               </label>
             </div>
@@ -97,7 +107,11 @@ export default function QuestionEdit({
 
           {/** Tags */}
           <div className="mt-3 w-full">
-            <TagEditor value={selectedTags} onChange={setSelectedTags} placeholder="Add tags (press Enter to add)" />
+            <TagEditor
+              value={selectedTags}
+              onChange={setSelectedTags}
+              placeholder="Add tags (press Enter to add)"
+            />
           </div>
         </div>
       </Card>

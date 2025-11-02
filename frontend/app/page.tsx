@@ -6,13 +6,8 @@ import { Question, QuestionModel } from "../model/QuestionModel";
 import { Tag, TagModel } from "../model/Tag";
 
 // Components
-import ViewPostCard from "../components/ViewPostCard";
-import Card from "../components/Card/Card";
 import Navbar from "../components/Navbar";
-import PillButton from "../components/Card/PillButton";
-import Stat from "../components/Card/Stat";
 import HomeClient from "../components/HomeClient";
-import Sidebar from "../components/Sidebar";
 import BrowseQuestion from "../components/Home/BrowseQuestion";
 
 export default async function PraxisPage() {
@@ -23,6 +18,7 @@ export default async function PraxisPage() {
 
   questions.forEach((question) => {
     question.isAnonymous = question.isAnonymous ? true : false;
+    console.log(question);
     const parseResult = QuestionModel.safeParse(question);
     if (!parseResult.success) {
       console.error(parseResult.error);

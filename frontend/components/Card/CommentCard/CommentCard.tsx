@@ -2,17 +2,17 @@
 import { useState } from "react";
 
 // components
-import AnswerView from "./AnswerView";
-import AnswerEdit from "./AnswerEdit";
+import CommentView from "./CommentView";
+import CommentEdit from "./CommentEdit";
 
 // model
-import { Answer } from "../../../model/AnswerModel";
+import { Comment } from "../../../model/CommentModel";
 
-export default function AnswerCard({
-  answer,
+export default function CommentCard({
+  comment,
   currentUserId,
 }: {
-  answer: Answer;
+  comment: Comment;
   currentUserId?: number;
 }) {
   const [isEditting, setIsEditting] = useState(false);
@@ -31,17 +31,15 @@ export default function AnswerCard({
   });
 
   const isOwner =
-    resolvedCurrentUserId !== null && answer.userId === resolvedCurrentUserId;
+    resolvedCurrentUserId !== null && comment.user_id === resolvedCurrentUserId;
 
-  async function handleSave(newContent: Answer) {
+  async function handleSave(newContent: Comment) {
     if (!confirm("Save this edit?")) {
       return;
     }
 
-    console.log(newContent);
-
     const newContentJson = JSON.stringify(newContent);
-    await fetch(`http://localhost:3000/api/answers/${answer.answerId}`, {
+    await fetch(`http://localhost:3000/api/comments/${comment.comment_id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -57,8 +55,14 @@ export default function AnswerCard({
       return;
     }
 
-    await fetch(`http://localhost:3000/api/answers/${answer.answerId}`, {
+    const body = JSON.stringify({ user_id: comment.user_id });
+
+    await fetch(`http://localhost:3000/api/comments/${comment.comment_id}`, {
       method: "DELETE",
+      body: body,
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
 
     window.location.reload();
@@ -66,8 +70,8 @@ export default function AnswerCard({
 
   if (isEditting) {
     return (
-      <AnswerEdit
-        answer={answer}
+      <CommentEdit
+        comment={comment}
         onSave={handleSave}
         onCancel={() => setIsEditting(false)}
       />
@@ -75,8 +79,8 @@ export default function AnswerCard({
   }
 
   return (
-    <AnswerView
-      answer={answer}
+    <CommentView
+      comment={comment}
       isOwner={isOwner}
       onEdit={() => setIsEditting(true)}
       onDelete={handleDelete}

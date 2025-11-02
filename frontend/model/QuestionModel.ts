@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { AnswerModel } from "./AnswerModel";
+import { CommentModel } from "./CommentModel";
 
 const QuestionModel = z.object({
   questionId: z.number(),
@@ -35,6 +36,7 @@ const QuestionWithAnswerModel = z.object({
   updatedAt: z.string(),
   answers: z.array(AnswerModel),
   tags: z.array(z.string()).optional(),
+  comments: z.array(CommentModel).optional(),
 });
 
 type Question = z.infer<typeof QuestionModel>;

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 // components
 import QuestionView from "./QuestionView";
 import QuestionEdit from "./QuestionEdit";
+import CommentCard from "../CommentCard/CommentCard";
 
 // model
 import { QuestionWithAnswer } from "../../../model/QuestionModel";
@@ -23,14 +24,15 @@ export default function QuestionCard({
       const raw = localStorage.getItem("user");
       if (!raw) return null;
       const u = JSON.parse(raw);
-      const id = u?.userId ?? u?.user_id ?? u?.id ?? null;//need this until we have consistent naming conventions
+      const id = u?.userId ?? u?.user_id ?? u?.id ?? null; //need this until we have consistent naming conventions
       return id == null ? null : Number(id);
     } catch (e) {
       return null;
     }
   });
 
-  const isOwner = resolvedCurrentUserId !== null && question.userId === resolvedCurrentUserId;
+  const isOwner =
+    resolvedCurrentUserId !== null && question.userId === resolvedCurrentUserId;
   const router = useRouter();
 
   async function handleSave(newContent: QuestionWithAnswer) {
@@ -55,9 +57,12 @@ export default function QuestionCard({
       return;
     }
 
-    const res = await fetch(`http://localhost:3000/api/questions/${question.questionId}`, {
-      method: "DELETE",
-    });
+    const res = await fetch(
+      `http://localhost:3000/api/questions/${question.questionId}`,
+      {
+        method: "DELETE",
+      },
+    );
 
     if (res.ok) {
       router.push("/");
@@ -79,11 +84,13 @@ export default function QuestionCard({
   }
 
   return (
-    <QuestionView
-      question={question}
-      isOwner={isOwner}
-      onEdit={() => setIsEditting(true)}
-      onDelete={handleDelete}
-    />
+    <div>
+      <QuestionView
+        question={question}
+        isOwner={isOwner}
+        onEdit={() => setIsEditting(true)}
+        onDelete={handleDelete}
+      />
+    </div>
   );
 }
