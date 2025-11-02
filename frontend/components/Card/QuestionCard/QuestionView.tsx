@@ -3,7 +3,7 @@
 import Card from "../Card";
 import { useEffect, useState } from "react";
 import Tag from "../Tag";
-import { formatDate } from '../../../lib/formatDate';
+import { formatDate } from '../../../helpers/formatDate';
 import AnswerForm from "../../AnswerForm";
 
 // model

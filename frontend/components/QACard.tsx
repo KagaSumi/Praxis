@@ -3,7 +3,7 @@ import React from "react";
 
 // Components
 import PillButton from "./Card/PillButton";
-import { formatDate } from '../lib/formatDate';
+import { formatDate } from '../helpers/formatDate';
 import AnswerForm from "./AnswerForm";
 
 enum QA {

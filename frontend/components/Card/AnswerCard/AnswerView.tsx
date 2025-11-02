@@ -3,7 +3,7 @@
 import { useState } from "react";
 // model
 import { Answer } from "../../../model/AnswerModel";
-import { formatDate } from '../../../lib/formatDate';
+import { formatDate } from '../../../helpers/formatDate';
 
 export default function AnswerView({
   answer,

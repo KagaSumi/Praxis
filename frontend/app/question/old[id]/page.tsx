@@ -12,7 +12,7 @@ import Card from "../../../components/Card/Card";
 import PillButton from "../../../components/Card/PillButton";
 import QACard from "../../../components/QACard";
 import Tag from "../../../components/Card/Tag";
-import { formatDate } from '../../../lib/formatDate';
+import { formatDate } from '../../../helpers/formatDate';
 
 // Models and Types
 import { QuestionWithAnswerModel, QuestionWithAnswer } from "../../../model/QuestionModel";

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Card from "./Card/Card";
 import Tag from "./Card/Tag";
 import PillButton from "./Card/PillButton";
-import { formatDate } from '../lib/formatDate';
+import { formatDate } from '../helpers/formatDate';
 
 export default function ViewPostCard({
   questionId,

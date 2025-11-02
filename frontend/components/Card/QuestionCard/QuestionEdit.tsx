@@ -6,7 +6,7 @@ import { useState } from "react";
 import Card from "../Card";
 import Tag from "../Tag";
 import TagEditor from "../../TagEditor";
-import { formatDate } from '../../../lib/formatDate';
+import { formatDate } from '../../../helpers/formatDate';
 
 // model
 import { QuestionWithAnswer } from "../../../model/QuestionModel";
