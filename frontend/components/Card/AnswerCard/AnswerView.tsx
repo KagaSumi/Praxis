@@ -4,6 +4,8 @@ import { useState } from "react";
 // model
 import { Answer } from "../../../model/AnswerModel";
 import { formatDate } from "../../../helpers/formatDate";
+import CommentCard from "../CommentCard/CommentCard";
+import CommentForm from "../../CommentForm";
 
 export default function AnswerView({
   answer,
@@ -151,6 +153,17 @@ export default function AnswerView({
               </>
             )}
           </p>
+        </div>
+      </div>
+      <div className="flex flex-col gap-3 relative pl-10 ">
+        <p className="text-md font-semibold before:absolute before:-bottom-[15px] before:left-0 before:h-[1px] before:w-full before:bg-slate-300 before:content-[''] ">
+          Comments
+        </p>
+        <div>
+          {answer.comments?.map((comment) => (
+            <CommentCard key={comment.comment_id} comment={comment} />
+          ))}
+          <CommentForm answerId={answer.answerId} />
         </div>
       </div>
     </div>

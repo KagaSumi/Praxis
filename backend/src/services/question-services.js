@@ -164,7 +164,7 @@ class QuestionService {
 
           // Get all the answer's comments
           const [answerComments] = await pool.execute(
-            `SELECT a.answer_id, a.body, a.created_at,
+            `SELECT a.answer_id, a.body, a.created_at, a.comment_id,
                                                     u.user_id, u.first_name, u.last_name
                                             FROM Comment a
                                             JOIN User u ON a.user_id = u.user_id
@@ -172,6 +172,7 @@ class QuestionService {
                                             ORDER BY a.created_at ASC`,
             [answer.answer_id],
           );
+          console.log(answerComments);
           return {
             answerId: answer.answer_id,
             content: answer.body,

@@ -9,17 +9,31 @@ import PillButton from "./Card/PillButton";
 async function addComment({
   content,
   questionId,
+  answerId,
   userId,
 }: {
   content: string;
-  questionId: number;
+  questionId: number | undefined;
+  answerId: number | undefined;
   userId: number;
 }) {
-  const body = JSON.stringify({
-    body: content,
-    question_id: questionId,
-    user_id: userId,
-  });
+  if (!questionId && !answerId)
+    throw new Error("QuestionId or AnswerId is required to upload a comment");
+
+  let body: string;
+  if (questionId === undefined) {
+    body = JSON.stringify({
+      body: content,
+      answer_id: answerId,
+      user_id: userId,
+    });
+  } else {
+    body = JSON.stringify({
+      body: content,
+      question_id: questionId,
+      user_id: userId,
+    });
+  }
 
   const res = await fetch("http://localhost:3000/api/comments", {
     method: "POST",
@@ -35,7 +49,13 @@ async function addComment({
   return res.json();
 }
 
-export default function CommentForm({ questionId }: { questionId: number }) {
+export default function CommentForm({
+  questionId,
+  answerId,
+}: {
+  questionId?: number;
+  answerId?: number;
+}) {
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -43,11 +63,7 @@ export default function CommentForm({ questionId }: { questionId: number }) {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-
-    const trimmed = content.trim();
-    if (!trimmed) return;
-    setContent(trimmed);
-
+    setContent(content);
     setSubmitting(true);
 
     try {
@@ -59,13 +75,14 @@ export default function CommentForm({ questionId }: { questionId: number }) {
       }
 
       await addComment({
-        content: trimmed,
+        content: content,
         questionId,
+        answerId,
         userId,
       });
 
       setContent("");
-      router.push(`/question/${questionId}`);
+      window.location.reload();
     } catch (err) {
       console.error("Error adding comment:", err);
     } finally {

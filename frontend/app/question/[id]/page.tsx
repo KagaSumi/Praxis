@@ -18,7 +18,7 @@ export default async function QuestionIdPage({
 }: {
   params: { id: string };
 }) {
-  const { id } = await params as { id: string };
+  const { id } = (await params) as { id: string };
   const res = await fetch(`http://localhost:3000/api/questions/${id}`);
   if (res.status === 404) {
     throw new Error("Question not found");
@@ -48,6 +48,8 @@ export default async function QuestionIdPage({
   const question: QuestionWithAnswer = result.data;
   const answers = question.answers;
 
+  console.log(answers);
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
@@ -68,9 +70,7 @@ export default async function QuestionIdPage({
             <Card>
               <div className="py-5 flex flex-col gap-10">
                 {answers.map((answer) => {
-                  return (
-                    <AnswerCard key={answer.answerId} answer={answer} />
-                  );
+                  return <AnswerCard key={answer.answerId} answer={answer} />;
                 })}
               </div>
             </Card>
