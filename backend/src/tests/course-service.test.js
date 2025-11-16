@@ -2,6 +2,7 @@
 const CourseService = require("../services/course-services");
 const { pool } = require("../services/database");
 
+// mock the database pool so that any calls to it will be replaced with jest mock database
 jest.mock("../services/database", () => ({
     pool: {
         execute: jest.fn()
