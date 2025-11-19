@@ -108,7 +108,7 @@ jobs:
           name: Build and Push Docker Images
           command: |
             # Set the image tag to the commit SHA
-            REPO=your-docker-hub-username/your-app-name
+            REPO=kagasumi/Praxis
             IMAGE_TAG=${CIRCLE_SHA1:0:7}
 
             # 1. Login to Docker Hub
