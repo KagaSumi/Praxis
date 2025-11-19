@@ -14,50 +14,27 @@ workflows:
             Frontend/.* frontend true
             database/.* database true
 
-      - select-pipeline:
+      - generate-config:
           requires:
             - detect-changes
 
 jobs:
-  select-pipeline:
+  generate-config:
     docker:
       - image: cimg/base:stable
     steps:
       - checkout
       - run:
-          name: Select pipeline config to use
+          name: Generate config to stdout
           command: |
-            echo "Detected changes:"
-            echo "Backend: $CIRCLE_PIPELINE_PARAMETERS_backend"
-            echo "Frontend: $CIRCLE_PIPELINE_PARAMETERS_frontend"
-            echo "Database: $CIRCLE_PIPELINE_PARAMETERS_database"
-
-            # Default pipeline config
-            PIPELINE_CONFIG=".circleci/empty-pipeline.yml"
-
-            if [ "$CIRCLE_PIPELINE_PARAMETERS_backend" = "true" ]; then
-              PIPELINE_CONFIG=".circleci/backend-pipeline.yml"
-            elif [ "$CIRCLE_PIPELINE_PARAMETERS_frontend" = "true" ]; then
-              PIPELINE_CONFIG=".circleci/frontend-pipeline.yml"
-            elif [ "$CIRCLE_PIPELINE_PARAMETERS_database" = "true" ]; then
-              PIPELINE_CONFIG=".circleci/database-pipeline.yml"
+            if [[ "$CIRCLE_PIPELINE_PARAMETERS_backend" == "true" ]]; then
+              cat .circleci/backend-pipeline.yml
+            elif [[ "$CIRCLE_PIPELINE_PARAMETERS_frontend" == "true" ]]; then
+              cat .circleci/frontend-pipeline.yml
+            elif [[ "$CIRCLE_PIPELINE_PARAMETERS_database" == "true" ]]; then
+              cat .circleci/database-pipeline.yml
+            else
+              echo "version: 2.1"
+              echo "workflows: {}"
             fi
-
-            echo "Using pipeline config: $PIPELINE_CONFIG"
-
-            # Output the selected config (this will be used by CircleCI as pipeline config)
-            cat $PIPELINE_CONFIG > generated-pipeline.yml
-
-      - persist_to_workspace:
-          root: .
-          paths:
-            - generated-pipeline.yml
-
-      - run:
-          name: Output config for debugging
-          command: cat generated-pipeline.yml
-
-      # This special command tells CircleCI to use this generated pipeline config:
-      - setup:
-          config_path: generated-pipeline.yml
 
