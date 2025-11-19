@@ -15,7 +15,7 @@ commands:
     parameters:
       path:
         type: string
-        description: The directory path to check for changes (e.g., Backend/)
+        description: The directory path to check for changes (e.g., backend/)
       test_command:
         type: string
         description: The command to run if changes are detected
@@ -52,47 +52,47 @@ jobs:
           paths:
             - .
 
-  # Job 2: Run conditional tests for Database, Backend, and Frontend
+  # Job 2: Run conditional tests for database, backend, and frontend
   run_conditional_tests:
     executor: default-executor
     steps:
       - attach_workspace:
           at: .
 
-      # Step 1: Database Tests (e.g., using a simple shell script or DB migration test)
+      # Step 1: database Tests (e.g., using a simple shell script or DB migration test)
       - check_for_changes:
-          path: Database/
+          path: database/
           test_command: |
             # Example setup for running database-related checks/tests
-            echo "Database: Running schema validation/test."
-            # cd Database/
+            echo "database: Running schema validation/test."
+            # cd database/
             # npm install (if node-based) or pip install (if python-based)
             # npm run test:db
-            echo "Database tests passed."
+            echo "database tests passed."
 
-      # Step 2: Backend Tests (e.g., a Node.js or Python backend)
+      # Step 2: backend Tests (e.g., a Node.js or Python backend)
       - check_for_changes:
-          path: Backend/
+          path: backend/
           test_command: |
-            echo "Backend: Installing dependencies and running unit tests."
+            echo "backend: Installing dependencies and running unit tests."
             # For a Node.js backend:
-            cd Backend/
+            cd backend/
             npm install
             npm test
             cd ..
-            echo "Backend tests passed."
+            echo "backend tests passed."
 
-      # Step 3: Frontend Tests (e.g., React/Vue/Angular tests)
+      # Step 3: frontend Tests (e.g., React/Vue/Angular tests)
       - check_for_changes:
-          path: Frontend/
+          path: frontend/
           test_command: |
-            echo "Frontend: Installing dependencies and running unit/integration tests."
+            echo "frontend: Installing dependencies and running unit/integration tests."
             # For a React/Node.js frontend:
-            cd Frontend/
+            cd frontend/
             npm install
             npm run test -- --watchAll=false
             cd ..
-            echo "Frontend tests passed."
+            echo "frontend tests passed."
 
   # Job 3: Build and Push Docker Images
   build_and_push_docker:
@@ -116,19 +116,19 @@ jobs:
             echo "Logging into Docker Hub..."
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
-            # 2. Build the Backend Image (tagging with both SHA and latest)
+            # 2. Build the backend Image (tagging with both SHA and latest)
             echo "Building $REPO-backend:$IMAGE_SHA_TAG and $REPO-backend:$LATEST_TAG"
             docker build \
               -t $REPO-backend:$IMAGE_SHA_TAG \
               -t $REPO-backend:$LATEST_TAG \
-              -f Backend/Dockerfile Backend/
+              -f backend/Dockerfile backend/
 
-            # 3. Build the Frontend Image (tagging with both SHA and latest)
+            # 3. Build the frontend Image (tagging with both SHA and latest)
             echo "Building $REPO-frontend:$IMAGE_SHA_TAG and $REPO-frontend:$LATEST_TAG"
             docker build \
               -t $REPO-frontend:$IMAGE_SHA_TAG \
               -t $REPO-frontend:$LATEST_TAG \
-              -f Frontend/Dockerfile Frontend/
+              -f frontend/Dockerfile frontend/
 
             # 4. Push images to Docker Hub (Pushing all tags)
             echo "Pushing images to Docker Hub..."
