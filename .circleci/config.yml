@@ -105,30 +105,39 @@ jobs:
           docker_layer_caching: true
 
       - run:
-          name: Build and Push Docker Images
+          name: Build and Push Docker Images (Main Branch Deploy)
           command: |
-            # Set the image tag to the commit SHA
-            REPO=kagasumi/Praxis
-            IMAGE_TAG=${CIRCLE_SHA1:0:7}
+            # Set the image tags: short SHA (for immutability) and 'latest' (for easy deployment)
+            REPO=your-docker-hub-username/your-app-name
+            IMAGE_SHA_TAG=${CIRCLE_SHA1:0:7}
+            LATEST_TAG="latest"
 
             # 1. Login to Docker Hub
             echo "Logging into Docker Hub..."
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
-            # 2. Build the Backend Image
-            echo "Building $REPO-backend:$IMAGE_TAG"
-            docker build -t $REPO-backend:$IMAGE_TAG -f Backend/Dockerfile Backend/
+            # 2. Build the Backend Image (tagging with both SHA and latest)
+            echo "Building $REPO-backend:$IMAGE_SHA_TAG and $REPO-backend:$LATEST_TAG"
+            docker build \
+              -t $REPO-backend:$IMAGE_SHA_TAG \
+              -t $REPO-backend:$LATEST_TAG \
+              -f Backend/Dockerfile Backend/
 
-            # 3. Build the Frontend Image
-            echo "Building $REPO-frontend:$IMAGE_TAG"
-            docker build -t $REPO-frontend:$IMAGE_TAG -f Frontend/Dockerfile Frontend/
+            # 3. Build the Frontend Image (tagging with both SHA and latest)
+            echo "Building $REPO-frontend:$IMAGE_SHA_TAG and $REPO-frontend:$LATEST_TAG"
+            docker build \
+              -t $REPO-frontend:$IMAGE_SHA_TAG \
+              -t $REPO-frontend:$LATEST_TAG \
+              -f Frontend/Dockerfile Frontend/
 
-            # 4. Push images to Docker Hub
+            # 4. Push images to Docker Hub (Pushing all tags)
             echo "Pushing images to Docker Hub..."
-            docker push $REPO-backend:$IMAGE_TAG
-            docker push $REPO-frontend:$IMAGE_TAG
+            docker push $REPO-backend:$IMAGE_SHA_TAG
+            docker push $REPO-backend:$LATEST_TAG
+            docker push $REPO-frontend:$IMAGE_SHA_TAG
+            docker push $REPO-frontend:$LATEST_TAG
 
-            echo "Successfully pushed $REPO-backend:$IMAGE_TAG and $REPO-frontend:$IMAGE_TAG"
+            echo "Successfully pushed $REPO-backend:$IMAGE_SHA_TAG/$LATEST_TAG and $REPO-frontend:$IMAGE_SHA_TAG/$LATEST_TAG"
 
 
 workflows:
@@ -140,12 +149,11 @@ workflows:
           requires:
             - setup_and_install
 
-      # Docker Push Job: Only run if the current branch is NOT 'main'
+      # Docker Push Job: Only run if the current branch IS 'main'
       - build_and_push_docker:
           requires:
             - run_conditional_tests
           filters:
             branches:
-              ignore:
+              only:
                 - main
-              # You can also add specific branches you want to run on, e.g., features/*
