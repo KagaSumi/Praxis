@@ -108,7 +108,7 @@ jobs:
           name: Build and Push Docker Images (Main Branch Deploy)
           command: |
             # Set the image tags: short SHA (for immutability) and 'latest' (for easy deployment)
-            REPO=kagasumi/Praxis
+            REPO=kagasumi/praxis
             IMAGE_SHA_TAG=${CIRCLE_SHA1:0:7}
             LATEST_TAG="latest"
 
