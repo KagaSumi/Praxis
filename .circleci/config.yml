@@ -157,4 +157,4 @@ workflows:
             branches:
               only:
                 - main 
-                - circlecci-project-setup
+                - circleci-project-setup
