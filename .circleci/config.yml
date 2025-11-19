@@ -1,234 +1,63 @@
 version: 2.1
-
 setup: true
 
 orbs:
   path-filtering: circleci/path-filtering@0.1.4
 
-parameters:
-  run_backend:
-    type: boolean
-    default: false
-  run_frontend:
-    type: boolean
-    default: false
-  run_database:
-    type: boolean
-    default: false
-
-jobs:
-  # --- Test Jobs ---
-  backend_test:
-    type: docker
-    docker:
-      - image: cimg/node:20.5.1
-    parameters:
-      run:
-        type: boolean
-        default: false
-    steps:
-      - when:
-          condition:
-            equal: [true, << parameters.run >>]
-          steps:
-            - checkout
-            - run:
-                name: "Run Backend Tests"
-                command: |
-                  echo "Running backend tests..."
-                  cd Backend
-                  npm install
-                  npm test
-
-  frontend_test:
-    type: docker
-    docker:
-      - image: cimg/node:20.5.1
-    parameters:
-      run:
-        type: boolean
-        default: false
-    steps:
-      - when:
-          condition:
-            equal: [true, << parameters.run >>]
-          steps:
-            - checkout
-            - run:
-                name: "Run Frontend Tests"
-                command: |
-                  echo "Running frontend tests..."
-                  cd Frontend
-                  npm install
-                  npm test
-
-  database_test:
-    type: docker
-    docker:
-      - image: cimg/postgres:16.0
-    parameters:
-      run:
-        type: boolean
-        default: false
-    steps:
-      - when:
-          condition:
-            equal: [true, << parameters.run >>]
-          steps:
-            - checkout
-            - run:
-                name: "Run Database Tests/Migrations"
-                command: |
-                  echo "Running database tests..."
-                  cd database
-                  # ./run-db-tests.sh
-
-  # --- Deploy Jobs (only on main) ---
-  backend_deploy_main:
-    type: docker
-    docker:
-      - image: cimg/base:stable
-    parameters:
-      run:
-        type: boolean
-        default: false
-    steps:
-      - when:
-          condition:
-            equal: [true, << parameters.run >>]
-          steps:
-            - checkout
-            - setup_remote_docker
-            - run:
-                name: Docker Login
-                command: |
-                  echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            - run:
-                name: Build Backend Docker Image
-                command: |
-                  docker build -t $DOCKERHUB_USERNAME/backend:latest ./Backend
-            - run:
-                name: Push Backend Docker Image
-                command: |
-                  docker push $DOCKERHUB_USERNAME/backend:latest
-            - run:
-                name: Deploy Backend to Main (Production)
-                command: |
-                  ./deploy-backend-main.sh
-
-  frontend_deploy_main:
-    type: docker
-    docker:
-      - image: cimg/base:stable
-    parameters:
-      run:
-        type: boolean
-        default: false
-    steps:
-      - when:
-          condition:
-            equal: [true, << parameters.run >>]
-          steps:
-            - checkout
-            - setup_remote_docker
-            - run:
-                name: Docker Login
-                command: |
-                  echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            - run:
-                name: Build Frontend Docker Image
-                command: |
-                  docker build -t $DOCKERHUB_USERNAME/frontend:latest ./Frontend
-            - run:
-                name: Push Frontend Docker Image
-                command: |
-                  docker push $DOCKERHUB_USERNAME/frontend:latest
-            - run:
-                name: Deploy Frontend to Main (Production)
-                command: |
-                  ./deploy-frontend-main.sh
-
-  database_deploy_main:
-    type: docker
-    docker:
-      - image: cimg/base:stable
-    parameters:
-      run:
-        type: boolean
-        default: false
-    steps:
-      - when:
-          condition:
-            equal: [true, << parameters.run >>]
-          steps:
-            - checkout
-            - setup_remote_docker
-            - run:
-                name: Docker Login
-                command: |
-                  echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            - run:
-                name: Build Database Docker Image
-                command: |
-                  docker build -t $DOCKERHUB_USERNAME/database:latest ./database
-            - run:
-                name: Push Database Docker Image
-                command: |
-                  docker push $DOCKERHUB_USERNAME/database:latest
-            - run:
-                name: Deploy Database to Main (Production)
-                command: |
-                  ./deploy-database-main.sh
-
 workflows:
-  check-and-run-pipelines:
+  setup:
     jobs:
       - path-filtering/filter:
-          name: check-for-changed-files
+          name: detect-changes
           mapping: |
-            Backend/.* run_backend true
-            Frontend/.* run_frontend true
-            database/.* run_database true
+            Backend/.* backend true
+            Frontend/.* frontend true
+            database/.* database true
 
-      - backend_test:
-          run: << pipeline.parameters.run_backend >>
-          requires: [check-for-changed-files]
-          filters:
-            branches:
-              ignore: [main]
+      - select-pipeline:
+          requires:
+            - detect-changes
 
-      - frontend_test:
-          run: << pipeline.parameters.run_frontend >>
-          requires: [check-for-changed-files]
-          filters:
-            branches:
-              ignore: [main]
+jobs:
+  select-pipeline:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: Select pipeline config to use
+          command: |
+            echo "Detected changes:"
+            echo "Backend: $CIRCLE_PIPELINE_PARAMETERS_backend"
+            echo "Frontend: $CIRCLE_PIPELINE_PARAMETERS_frontend"
+            echo "Database: $CIRCLE_PIPELINE_PARAMETERS_database"
 
-      - database_test:
-          run: << pipeline.parameters.run_database >>
-          requires: [check-for-changed-files]
-          filters:
-            branches:
-              ignore: [main]
+            # Default pipeline config
+            PIPELINE_CONFIG=".circleci/empty-pipeline.yml"
 
-      - backend_deploy_main:
-          run: << pipeline.parameters.run_backend >>
-          requires: [check-for-changed-files]
-          filters:
-            branches:
-              only: main
+            if [ "$CIRCLE_PIPELINE_PARAMETERS_backend" = "true" ]; then
+              PIPELINE_CONFIG=".circleci/backend-pipeline.yml"
+            elif [ "$CIRCLE_PIPELINE_PARAMETERS_frontend" = "true" ]; then
+              PIPELINE_CONFIG=".circleci/frontend-pipeline.yml"
+            elif [ "$CIRCLE_PIPELINE_PARAMETERS_database" = "true" ]; then
+              PIPELINE_CONFIG=".circleci/database-pipeline.yml"
+            fi
 
-      - frontend_deploy_main:
-          run: << pipeline.parameters.run_frontend >>
-          requires: [check-for-changed-files]
-          filters:
-            branches:
-              only: main
+            echo "Using pipeline config: $PIPELINE_CONFIG"
 
-      - database_deploy_main:
-          run: << pipeline.parameters.run_database >>
-          requires: [check-for-changed-files]
-          filters:
-            branches:
-              only: main
+            # Output the selected config (this will be used by CircleCI as pipeline config)
+            cat $PIPELINE_CONFIG > generated-pipeline.yml
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - generated-pipeline.yml
+
+      - run:
+          name: Output config for debugging
+          command: cat generated-pipeline.yml
+
+      # This special command tells CircleCI to use this generated pipeline config:
+      - setup:
+          config_path: generated-pipeline.yml
 
