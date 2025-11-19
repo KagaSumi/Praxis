@@ -34,7 +34,6 @@ jobs:
             elif [[ "$CIRCLE_PIPELINE_PARAMETERS_database" == "true" ]]; then
               cat .circleci/database-pipeline.yml
             else
-              echo "version: 2.1"
-              echo "workflows: {}"
+              cat .circleci/empty-pipeline.yml
             fi
 
