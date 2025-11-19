@@ -19,6 +19,7 @@ parameters:
 jobs:
   # --- Test Jobs ---
   backend_test:
+    type: docker
     docker:
       - image: cimg/node:20.5.1
     parameters:
@@ -40,6 +41,7 @@ jobs:
                   npm test
 
   frontend_test:
+    type: docker
     docker:
       - image: cimg/node:20.5.1
     parameters:
@@ -61,6 +63,7 @@ jobs:
                   npm test
 
   database_test:
+    type: docker
     docker:
       - image: cimg/postgres:16.0
     parameters:
@@ -82,6 +85,7 @@ jobs:
 
   # --- Deploy Jobs (only on main) ---
   backend_deploy_main:
+    type: docker
     docker:
       - image: cimg/base:stable
     parameters:
@@ -113,6 +117,7 @@ jobs:
                   ./deploy-backend-main.sh
 
   frontend_deploy_main:
+    type: docker
     docker:
       - image: cimg/base:stable
     parameters:
@@ -144,6 +149,7 @@ jobs:
                   ./deploy-frontend-main.sh
 
   database_deploy_main:
+    type: docker
     docker:
       - image: cimg/base:stable
     parameters:
