@@ -20,20 +20,47 @@ workflows:
 
 jobs:
   generate-config:
-    docker:
-      - image: cimg/base:stable
-    steps:
-      - checkout
-      - run:
-          name: Generate config to stdout
-          command: |
-            if [[ "$CIRCLE_PIPELINE_PARAMETERS_backend" == "true" ]]; then
-              cat .circleci/backend-pipeline.yml
-            elif [[ "$CIRCLE_PIPELINE_PARAMETERS_frontend" == "true" ]]; then
-              cat .circleci/frontend-pipeline.yml
-            elif [[ "$CIRCLE_PIPELINE_PARAMETERS_database" == "true" ]]; then
-              cat .circleci/database-pipeline.yml
-            else
-              cat .circleci/empty-pipeline.yml
-            fi
+  docker:
+    - image: cimg/base:stable
+  steps:
+    - checkout
+    - run:
+        name: Generate combined pipeline config file
+        command: |
+          # Start with empty config header
+          echo "version: 2.1" > .circleci/continue_config.yml
+          echo "workflows:" >> .circleci/continue_config.yml
+          
+          # Append backend config if changed
+          if [[ "$CIRCLE_PIPELINE_PARAMETERS_backend" == "true" ]]; then
+            echo "# Backend pipeline config" >> .circleci/continue_config.yml
+            # Append backend config but strip version & workflows to avoid duplicate keys
+            sed '/^version:/d;/^workflows:/d' .circleci/backend-pipeline.yml >> .circleci/continue_config.yml
+          fi
+
+          # Append frontend config if changed
+          if [[ "$CIRCLE_PIPELINE_PARAMETERS_frontend" == "true" ]]; then
+            echo "# Frontend pipeline config" >> .circleci/continue_config.yml
+            sed '/^version:/d;/^workflows:/d' .circleci/frontend-pipeline.yml >> .circleci/continue_config.yml
+          fi
+
+          # Append database config if changed
+          if [[ "$CIRCLE_PIPELINE_PARAMETERS_database" == "true" ]]; then
+            echo "# Database pipeline config" >> .circleci/continue_config.yml
+            sed '/^version:/d;/^workflows:/d' .circleci/database-pipeline.yml >> .circleci/continue_config.yml
+          fi
+
+          # If no configs appended, use empty pipeline
+          if ! grep -q "jobs:" .circleci/continue_config.yml; then
+            cp .circleci/empty-pipeline.yml .circleci/continue_config.yml
+          fi
+
+          echo "Generated combined pipeline config:"
+          cat .circleci/continue_config.yml
+
+    - run:
+        name: Continue pipeline with generated config
+        command: |
+          export CONFIG_PATH=".circleci/continue_config.yml"
+          ./your-continuation-script.sh
 
