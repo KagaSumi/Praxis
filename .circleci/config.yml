@@ -21,110 +21,158 @@ jobs:
   backend_test:
     docker:
       - image: cimg/node:20.5.1
+    parameters:
+      run:
+        type: boolean
+        default: false
     steps:
-      - checkout
-      - run:
-          name: "Run Backend Tests"
-          command: |
-            echo "Running backend tests..."
-            cd Backend
-            npm install
-            npm test
+      - when:
+          condition:
+            equal: [true, << parameters.run >>]
+          steps:
+            - checkout
+            - run:
+                name: "Run Backend Tests"
+                command: |
+                  echo "Running backend tests..."
+                  cd Backend
+                  npm install
+                  npm test
 
   frontend_test:
     docker:
       - image: cimg/node:20.5.1
+    parameters:
+      run:
+        type: boolean
+        default: false
     steps:
-      - checkout
-      - run:
-          name: "Run Frontend Tests"
-          command: |
-            echo "Running frontend tests..."
-            cd Frontend
-            npm install
-            npm test
+      - when:
+          condition:
+            equal: [true, << parameters.run >>]
+          steps:
+            - checkout
+            - run:
+                name: "Run Frontend Tests"
+                command: |
+                  echo "Running frontend tests..."
+                  cd Frontend
+                  npm install
+                  npm test
 
   database_test:
     docker:
       - image: cimg/postgres:16.0
+    parameters:
+      run:
+        type: boolean
+        default: false
     steps:
-      - checkout
-      - run:
-          name: "Run Database Tests/Migrations"
-          command: |
-            echo "Running database tests..."
-            cd database
-            # ./run-db-tests.sh
+      - when:
+          condition:
+            equal: [true, << parameters.run >>]
+          steps:
+            - checkout
+            - run:
+                name: "Run Database Tests/Migrations"
+                command: |
+                  echo "Running database tests..."
+                  cd database
+                  # ./run-db-tests.sh
 
   # --- Deploy Jobs (only on main) ---
   backend_deploy_main:
     docker:
       - image: cimg/base:stable
+    parameters:
+      run:
+        type: boolean
+        default: false
     steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Docker Login
-          command: |
-            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-      - run:
-          name: Build Backend Docker Image
-          command: |
-            docker build -t $DOCKERHUB_USERNAME/backend:latest ./Backend
-      - run:
-          name: Push Backend Docker Image
-          command: |
-            docker push $DOCKERHUB_USERNAME/backend:latest
-      - run:
-          name: Deploy Backend to Main (Production)
-          command: |
-            ./deploy-backend-main.sh
+      - when:
+          condition:
+            equal: [true, << parameters.run >>]
+          steps:
+            - checkout
+            - setup_remote_docker
+            - run:
+                name: Docker Login
+                command: |
+                  echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            - run:
+                name: Build Backend Docker Image
+                command: |
+                  docker build -t $DOCKERHUB_USERNAME/backend:latest ./Backend
+            - run:
+                name: Push Backend Docker Image
+                command: |
+                  docker push $DOCKERHUB_USERNAME/backend:latest
+            - run:
+                name: Deploy Backend to Main (Production)
+                command: |
+                  ./deploy-backend-main.sh
 
   frontend_deploy_main:
     docker:
       - image: cimg/base:stable
+    parameters:
+      run:
+        type: boolean
+        default: false
     steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Docker Login
-          command: |
-            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-      - run:
-          name: Build Frontend Docker Image
-          command: |
-            docker build -t $DOCKERHUB_USERNAME/frontend:latest ./Frontend
-      - run:
-          name: Push Frontend Docker Image
-          command: |
-            docker push $DOCKERHUB_USERNAME/frontend:latest
-      - run:
-          name: Deploy Frontend to Main (Production)
-          command: |
-            ./deploy-frontend-main.sh
+      - when:
+          condition:
+            equal: [true, << parameters.run >>]
+          steps:
+            - checkout
+            - setup_remote_docker
+            - run:
+                name: Docker Login
+                command: |
+                  echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            - run:
+                name: Build Frontend Docker Image
+                command: |
+                  docker build -t $DOCKERHUB_USERNAME/frontend:latest ./Frontend
+            - run:
+                name: Push Frontend Docker Image
+                command: |
+                  docker push $DOCKERHUB_USERNAME/frontend:latest
+            - run:
+                name: Deploy Frontend to Main (Production)
+                command: |
+                  ./deploy-frontend-main.sh
 
   database_deploy_main:
     docker:
       - image: cimg/base:stable
+    parameters:
+      run:
+        type: boolean
+        default: false
     steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Docker Login
-          command: |
-            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-      - run:
-          name: Build Database Docker Image
-          command: |
-            docker build -t $DOCKERHUB_USERNAME/database:latest ./database
-      - run:
-          name: Push Database Docker Image
-          command: |
-            docker push $DOCKERHUB_USERNAME/database:latest
-      - run:
-          name: Deploy Database to Main (Production)
-          command: |
-            ./deploy-database-main.sh
+      - when:
+          condition:
+            equal: [true, << parameters.run >>]
+          steps:
+            - checkout
+            - setup_remote_docker
+            - run:
+                name: Docker Login
+                command: |
+                  echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            - run:
+                name: Build Database Docker Image
+                command: |
+                  docker build -t $DOCKERHUB_USERNAME/database:latest ./database
+            - run:
+                name: Push Database Docker Image
+                command: |
+                  docker push $DOCKERHUB_USERNAME/database:latest
+            - run:
+                name: Deploy Database to Main (Production)
+                command: |
+                  ./deploy-database-main.sh
 
 workflows:
   check-and-run-pipelines:
@@ -136,46 +184,44 @@ workflows:
             Frontend/.* run_frontend true
             database/.* run_database true
 
-      # Run tests on all branches except main
       - backend_test:
+          run: << pipeline.parameters.run_backend >>
           requires: [check-for-changed-files]
-          when: << pipeline.parameters.run_backend >>
           filters:
             branches:
               ignore: [main]
 
       - frontend_test:
+          run: << pipeline.parameters.run_frontend >>
           requires: [check-for-changed-files]
-          when: << pipeline.parameters.run_frontend >>
           filters:
             branches:
               ignore: [main]
 
       - database_test:
+          run: << pipeline.parameters.run_database >>
           requires: [check-for-changed-files]
-          when: << pipeline.parameters.run_database >>
           filters:
             branches:
               ignore: [main]
 
-      # Deploy only on main branch
       - backend_deploy_main:
+          run: << pipeline.parameters.run_backend >>
           requires: [check-for-changed-files]
-          when: << pipeline.parameters.run_backend >>
           filters:
             branches:
               only: main
 
       - frontend_deploy_main:
+          run: << pipeline.parameters.run_frontend >>
           requires: [check-for-changed-files]
-          when: << pipeline.parameters.run_frontend >>
           filters:
             branches:
               only: main
 
       - database_deploy_main:
+          run: << pipeline.parameters.run_database >>
           requires: [check-for-changed-files]
-          when: << pipeline.parameters.run_database >>
           filters:
             branches:
               only: main
