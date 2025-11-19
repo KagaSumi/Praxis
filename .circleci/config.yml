@@ -97,7 +97,7 @@ jobs:
   # Job 3: Build and Push Docker Images
   build_and_push_docker:
     executor: default-executor
-    # Requires DOCKER_USER and DOCKER_PASS environment variables to be set in CircleCI
+    # Requires DOCKERHUB_USERNAME and DOCKERHUB_PASSWORD environment variables to be set in CircleCI
     steps:
       - attach_workspace:
           at: .
@@ -113,7 +113,7 @@ jobs:
 
             # 1. Login to Docker Hub
             echo "Logging into Docker Hub..."
-            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
             # 2. Build the Backend Image
             echo "Building $REPO-backend:$IMAGE_TAG"
