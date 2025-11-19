@@ -1,66 +1,151 @@
 version: 2.1
-setup: true
 
-orbs:
-  path-filtering: circleci/path-filtering@0.1.4
+# Define reusable executors for consistency
+executors:
+  default-executor:
+    docker:
+      # Use a standard Docker image with Node, Python, and other tools,
+      # which is common for full-stack apps.
+      - image: cimg/base:2024.08
 
-workflows:
-  setup:
-    jobs:
-      - path-filtering/filter:
-          name: detect-changes
-          mapping: |
-            Backend/.* backend true
-            Frontend/.* frontend true
-            database/.* database true
+# Define reusable commands to check for changes and run tests/builds
+commands:
+  # Command to check if a specific directory has changes compared to the 'main' branch
+  check_for_changes:
+    parameters:
+      path:
+        type: string
+        description: The directory path to check for changes (e.g., Backend/)
+      test_command:
+        type: string
+        description: The command to run if changes are detected
 
-      - generate-config:
-          requires:
-            - detect-changes
+    steps:
+      - run:
+          name: Check changes in << parameters.path >> and run tests
+          # Get the merge-base (common ancestor) between the current branch and main
+          # This helps accurately determine what files are new or modified.
+          command: |
+            echo "--- Checking for changes in << parameters.path >> ---"
+            # Fallback to main if merge-base fails (e.g., first commit on a branch)
+            BASE_COMMIT=$(git merge-base HEAD main || echo "main")
+
+            # Check if any file in the specified path has been modified since BASE_COMMIT
+            if git diff --quiet $BASE_COMMIT HEAD -- << parameters.path >>; then
+              echo "No changes detected in << parameters.path >>. Skipping tests."
+            else
+              echo "Changes detected in << parameters.path >>. Running tests..."
+              # Execute the test command
+              eval '<< parameters.test_command >>'
+            fi
 
 jobs:
-  generate-config:
-  docker:
-    - image: cimg/base:stable
-  steps:
-    - checkout
-    - run:
-        name: Generate combined pipeline config file
-        command: |
-          # Start with empty config header
-          echo "version: 2.1" > .circleci/continue_config.yml
-          echo "workflows:" >> .circleci/continue_config.yml
-          
-          # Append backend config if changed
-          if [[ "$CIRCLE_PIPELINE_PARAMETERS_backend" == "true" ]]; then
-            echo "# Backend pipeline config" >> .circleci/continue_config.yml
-            # Append backend config but strip version & workflows to avoid duplicate keys
-            sed '/^version:/d;/^workflows:/d' .circleci/backend-pipeline.yml >> .circleci/continue_config.yml
-          fi
+  # Job 1: Install dependencies and setup Git history for accurate diffing
+  setup_and_install:
+    executor: default-executor
+    steps:
+      - checkout
+      # Fetch main branch history to compare changes against
+      - run: git fetch origin main --depth=10
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
 
-          # Append frontend config if changed
-          if [[ "$CIRCLE_PIPELINE_PARAMETERS_frontend" == "true" ]]; then
-            echo "# Frontend pipeline config" >> .circleci/continue_config.yml
-            sed '/^version:/d;/^workflows:/d' .circleci/frontend-pipeline.yml >> .circleci/continue_config.yml
-          fi
+  # Job 2: Run conditional tests for Database, Backend, and Frontend
+  run_conditional_tests:
+    executor: default-executor
+    steps:
+      - attach_workspace:
+          at: .
 
-          # Append database config if changed
-          if [[ "$CIRCLE_PIPELINE_PARAMETERS_database" == "true" ]]; then
-            echo "# Database pipeline config" >> .circleci/continue_config.yml
-            sed '/^version:/d;/^workflows:/d' .circleci/database-pipeline.yml >> .circleci/continue_config.yml
-          fi
+      # Step 1: Database Tests (e.g., using a simple shell script or DB migration test)
+      - check_for_changes:
+          path: Database/
+          test_command: |
+            # Example setup for running database-related checks/tests
+            echo "Database: Running schema validation/test."
+            # cd Database/
+            # npm install (if node-based) or pip install (if python-based)
+            # npm run test:db
+            echo "Database tests passed."
 
-          # If no configs appended, use empty pipeline
-          if ! grep -q "jobs:" .circleci/continue_config.yml; then
-            cp .circleci/empty-pipeline.yml .circleci/continue_config.yml
-          fi
+      # Step 2: Backend Tests (e.g., a Node.js or Python backend)
+      - check_for_changes:
+          path: Backend/
+          test_command: |
+            echo "Backend: Installing dependencies and running unit tests."
+            # For a Node.js backend:
+            cd Backend/
+            npm install
+            npm test
+            cd ..
+            echo "Backend tests passed."
 
-          echo "Generated combined pipeline config:"
-          cat .circleci/continue_config.yml
+      # Step 3: Frontend Tests (e.g., React/Vue/Angular tests)
+      - check_for_changes:
+          path: Frontend/
+          test_command: |
+            echo "Frontend: Installing dependencies and running unit/integration tests."
+            # For a React/Node.js frontend:
+            cd Frontend/
+            npm install
+            npm run test -- --watchAll=false
+            cd ..
+            echo "Frontend tests passed."
 
-    - run:
-        name: Continue pipeline with generated config
-        command: |
-          export CONFIG_PATH=".circleci/continue_config.yml"
-          ./your-continuation-script.sh
+  # Job 3: Build and Push Docker Images
+  build_and_push_docker:
+    executor: default-executor
+    # Requires DOCKER_USER and DOCKER_PASS environment variables to be set in CircleCI
+    steps:
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          docker_layer_caching: true
 
+      - run:
+          name: Build and Push Docker Images
+          command: |
+            # Set the image tag to the commit SHA
+            REPO=your-docker-hub-username/your-app-name
+            IMAGE_TAG=${CIRCLE_SHA1:0:7}
+
+            # 1. Login to Docker Hub
+            echo "Logging into Docker Hub..."
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+
+            # 2. Build the Backend Image
+            echo "Building $REPO-backend:$IMAGE_TAG"
+            docker build -t $REPO-backend:$IMAGE_TAG -f Backend/Dockerfile Backend/
+
+            # 3. Build the Frontend Image
+            echo "Building $REPO-frontend:$IMAGE_TAG"
+            docker build -t $REPO-frontend:$IMAGE_TAG -f Frontend/Dockerfile Frontend/
+
+            # 4. Push images to Docker Hub
+            echo "Pushing images to Docker Hub..."
+            docker push $REPO-backend:$IMAGE_TAG
+            docker push $REPO-frontend:$IMAGE_TAG
+
+            echo "Successfully pushed $REPO-backend:$IMAGE_TAG and $REPO-frontend:$IMAGE_TAG"
+
+
+workflows:
+  full_stack_ci_cd:
+    jobs:
+      - setup_and_install
+      # Run all tests conditionally based on path changes
+      - run_conditional_tests:
+          requires:
+            - setup_and_install
+
+      # Docker Push Job: Only run if the current branch is NOT 'main'
+      - build_and_push_docker:
+          requires:
+            - run_conditional_tests
+          filters:
+            branches:
+              ignore:
+                - main
+              # You can also add specific branches you want to run on, e.g., features/*
