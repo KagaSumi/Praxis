@@ -44,6 +44,10 @@ jobs:
   setup_and_install:
     executor: default-executor
     steps:
+      - run:
+          name: Create Ssh Folder
+          command: mkdir -p ~/.ssh
+
       # Step 1: Add GitHub's SSH key to known_hosts to prevent the prompt
       - run:
           name: Add GitHub to Known Hosts
