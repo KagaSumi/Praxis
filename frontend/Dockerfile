@@ -1,43 +1,42 @@
-# Stage 1: Dependency Caching & Base Setup
+# Stage 1: Base
 FROM node:20-alpine AS base
-# Create app directory
 WORKDIR /app
-# Set environment variables for Next.js build
-ENV NODE_ENV=production
 
-# Stage 2: Builder - Install dependencies and build the app
+# Stage 2: Builder
 FROM base AS builder
-# Copy package files
+
+# 1. Copy only package files (caches better)
 COPY package*.json ./
-# Install only production dependencies
+
+# 2. Install ALL dependencies (dev + prod)
+# FORCE npm to install dev deps by resetting NODE_ENV
+ENV NODE_ENV=development
 RUN npm ci
-# Copy all source files
+
+# 3. Copy full project
 COPY . .
 
-# Use the production build script
-# This generates the optimized code in the .next folder
-RUN npm run build 
+# 4. Build the application
+RUN npm run build
 
-# Stage 3: Runner - Minimal image to run the built application
-FROM base AS runner
-# Set the user for security (Next.js best practice)
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Stage 3: Runner
+FROM node:20-alpine AS runner
+WORKDIR /app
 
-# Copy essential files from the builder stage
-# Copy the built application and static assets
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 nextjs
+
+# Copy built output & node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
-# Copy package files (needed for 'npm start')
 COPY package*.json ./
 
-# Set the correct ownership
-RUN chown -R nextjs:nodejs ./.next ./node_modules 
+# Switch to production for runtime
+ENV NODE_ENV=production
+
 USER nextjs
 
-# Expose the port your 'start' script uses (8080)
 EXPOSE 8080
-
-# Run the production server using the 'start' script
-# Your 'start' script is "next start -p 8080"
 CMD ["npm", "start"]
+
