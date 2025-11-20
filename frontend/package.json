@@ -4,6 +4,11 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "zod": "^4.1.11"
+    "tailwindcss": "^4.1.14",
+    "@tailwindcss/postcss": "^4.1.17",
+    "postcss": "^8.5.6",
+    "autoprefixer": "^10.4.21"
+}
   },
   "scripts": {
     "dev": "start http://localhost:8080 && next dev --turbopack -p 8080",
