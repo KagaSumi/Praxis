@@ -9,7 +9,7 @@ WORKDIR /app
 
 # Copy package.json and package-lock.json first to leverage Docker cache
 # If these files haven't changed, subsequent layers will be skipped.
-COPY Backend/package*.json ./
+COPY package*.json ./
 
 # Install production dependencies
 RUN npm install --only=production
@@ -22,11 +22,11 @@ WORKDIR /app
 
 # Copy the node_modules and package files from the builder stage
 COPY --from=builder /app/node_modules ./node_modules
-COPY Backend/package*.json ./
+COPY package*.json ./
 
 # Copy the rest of the application source code
 # Assuming the root of your source is inside the Backend folder
-COPY Backend/ .
+COPY . .
 
 # Expose the port your application listens on (e.g., 3000)
 EXPOSE 3000
