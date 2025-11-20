@@ -13,12 +13,13 @@ import {
   QuestionWithAnswer,
 } from "../../../model/QuestionModel";
 
+type Params = Promise<{ id: string }>
 export default async function QuestionIdPage({
   params,
 }: {
-  params: { id: string };
+  params: Params;
 }) {
-  const { id } = (await params) as { id: string };
+  const { id } = await params;
   const res = await fetch(`http://localhost:3000/api/questions/${id}`);
   if (res.status === 404) {
     notFound();

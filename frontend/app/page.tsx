@@ -1,5 +1,6 @@
 // Packages
 import React from "react";
+export const dynamic = "force-dynamic";
 
 // Model
 import { Question, QuestionModel } from "../model/QuestionModel";

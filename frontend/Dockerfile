@@ -1,40 +1,43 @@
-#
-# Dockerfile for the Frontend (e.g., React/Vue app) using a multi-stage build
-#
-
-# Stage 1: Build the static assets
-FROM node:20-slim AS build-stage
-
-# Set the working directory
+# Stage 1: Dependency Caching & Base Setup
+FROM node:20-alpine AS base
+# Create app directory
 WORKDIR /app
+# Set environment variables for Next.js build
+ENV NODE_ENV=production
 
-# Copy package files from the Frontend directory
-COPY Frontend/package*.json ./
-
-# Install dependencies
+# Stage 2: Builder - Install dependencies and build the app
+FROM base AS builder
+# Copy package files
+COPY package*.json ./
+# Install only production dependencies
 RUN npm install
+# Copy all source files
+COPY . .
 
-# Copy the rest of the application source code
-COPY Frontend/ .
+# Use the production build script
+# This generates the optimized code in the .next folder
+RUN npm run build 
 
-# Build the application
-# This command assumes your package.json has a 'build' script 
-# that outputs static files to a 'dist' or 'build' folder.
-RUN npm run devL
+# Stage 3: Runner - Minimal image to run the built application
+FROM base AS runner
+# Set the user for security (Next.js best practice)
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# Stage 2: Serve the built assets using a minimal NGINX web server
-# Copy the built assets from the previous stage to the NGINX default server location
-# Adjust 'dist' or 'build' if your frontend build script outputs to a different directory
-COPY --from=build-stage /app/dist /usr/share/nginx/html
+# Copy essential files from the builder stage
+# Copy the built application and static assets
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+# Copy package files (needed for 'npm start')
+COPY package*.json ./
 
-# Copy custom NGINX configuration (optional, but good practice for SPAs)
-# If your app is a Single Page Application (SPA), you need an NGINX config 
-# to handle client-side routing (e.g., redirecting all unmatched paths to index.html)
-# You may need to create a file like 'nginx.conf' in your Frontend folder.
-# COPY Frontend/nginx.conf /etc/nginx/conf.d/default.conf
+# Set the correct ownership
+RUN chown -R nextjs:nodejs ./.next ./node_modules 
+USER nextjs
 
-# Expose the standard HTTP port
-EXPOSE 80
+# Expose the port your 'start' script uses (8080)
+EXPOSE 8080
 
-# The default CMD of NGINX runs the server
-CMD ["nginx", "-g", "daemon off;"]
+# Run the production server using the 'start' script
+# Your 'start' script is "next start -p 8080"
+CMD ["npm", "start"]
