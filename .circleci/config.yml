@@ -44,8 +44,16 @@ jobs:
   setup_and_install:
     executor: default-executor
     steps:
+      # Step 1: Add GitHub's SSH key to known_hosts to prevent the prompt
+      - run:
+          name: Add GitHub to Known Hosts
+          # The -H option ensures the host is hashed, and -t specifies the key type
+          command: ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+      
+      # Step 2: Checkout the code
       - checkout
-      # Fetch main branch history to compare changes against
+      
+      # Step 3: Fetch main branch history to compare changes against
       - run: git fetch origin main --depth=10
       - persist_to_workspace:
           root: .

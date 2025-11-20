@@ -20,11 +20,9 @@ COPY Frontend/ .
 # Build the application
 # This command assumes your package.json has a 'build' script 
 # that outputs static files to a 'dist' or 'build' folder.
-RUN npm run build
+RUN npm run devL
 
 # Stage 2: Serve the built assets using a minimal NGINX web server
-FROM nginx:stable-alpine AS production-stage
-
 # Copy the built assets from the previous stage to the NGINX default server location
 # Adjust 'dist' or 'build' if your frontend build script outputs to a different directory
 COPY --from=build-stage /app/dist /usr/share/nginx/html
