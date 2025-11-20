@@ -10,8 +10,7 @@ COPY package*.json ./
 
 # 2. Install ALL dependencies (dev + prod)
 # FORCE npm to install dev deps by resetting NODE_ENV
-ENV NODE_ENV=development
-RUN npm ci
+RUN npm install
 
 # 3. Copy full project
 COPY . .
