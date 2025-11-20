@@ -10,7 +10,7 @@ FROM base AS builder
 # Copy package files
 COPY package*.json ./
 # Install only production dependencies
-RUN npm install
+RUN npm ci
 # Copy all source files
 COPY . .
 
