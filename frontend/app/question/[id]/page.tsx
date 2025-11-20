@@ -21,9 +21,11 @@ export default async function QuestionIdPage({
   const { id } = (await params) as { id: string };
   const res = await fetch(`http://localhost:3000/api/questions/${id}`);
   if (res.status === 404) {
-    throw new Error("Question not found");
+    notFound();
   }
-
+  if (!res.ok && res.status === 400) { //why is the backend returning 400 when question not found?
+    notFound();
+  }
   if (!res.ok) {
     throw new Error("Failed to fetch Question");
   }
