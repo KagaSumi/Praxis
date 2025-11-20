@@ -52,14 +52,91 @@ async function addComment({
 export default function CommentForm({
   questionId,
   answerId,
+  parentCommentBody,
+  parentIsAI,
 }: {
   questionId?: number;
   answerId?: number;
+  parentCommentBody?: string;
+  parentIsAI?: boolean;
 }) {
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [generatingAI, setGeneratingAI] = useState(false);
 
   const router = useRouter();
+
+  async function fetchQuestionContent(qId: number) {
+    try {
+      const res = await fetch(`http://localhost:3000/api/questions/${qId}`);
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data?.content ?? null;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  async function generateAIReply({
+    questionId,
+    answerId,
+    parentBody,
+    userFeedback,
+  }: {
+    questionId?: number;
+    answerId?: number;
+    parentBody?: string;
+    userFeedback: string;
+  }) {
+    setGeneratingAI(true);
+    try {
+      let questionText: string | null = null;
+      if (questionId) questionText = await fetchQuestionContent(questionId);
+
+      const promptParts: string[] = [];
+      if (questionText) promptParts.push(`Original question: "${questionText}"`);
+      if (parentBody) promptParts.push(`Original AI reply: "${parentBody}"`);
+      promptParts.push(`User feedback: "${userFeedback}"`);
+
+      // We ask the AI to return ONLY the JSON object to simplify parsing (not 100% reliable, not sure if there is a better way??)
+      const payload = {
+        original_question: questionText ?? "",
+        original_ai_reply: parentBody ?? "",
+        user_feedback: userFeedback,
+      };
+      // instructions for the AI, I don't know if there is better language to force a JSON only response
+      const instruction =
+        'Return a JSON object ONLY with the shape {"reply":"...","prompt":"..."}. ' +
+        'The "reply" value should be the improved AI answer. The "prompt" value should be the exact text you used to generate that answer (include original question, original AI reply, and user feedback). Do not include any other text or explanation.';
+
+      const prompt = instruction + "\n\n" + JSON.stringify(payload);
+
+      const body = JSON.stringify({
+        body: prompt,
+        question_id: questionId,
+        answer_id: answerId,
+      });
+
+      const res = await fetch("http://localhost:3000/api/comments/generate-ai-comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`AI generation failed: ${txt}`);
+      }
+
+      await res.json();
+      // refresh to show the new AI comment
+      window.location.reload();
+    } catch (err) {
+      console.error("Error generating AI reply:", err);
+    } finally {
+      setGeneratingAI(false);
+    }
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -81,8 +158,17 @@ export default function CommentForm({
         userId,
       });
 
-      setContent("");
-      window.location.reload();
+      if (parentIsAI) {
+        await generateAIReply({
+          questionId,
+          answerId,
+          parentBody: parentCommentBody,
+          userFeedback: content,
+        });
+      } else {
+        setContent("");
+        window.location.reload();
+      }
     } catch (err) {
       console.error("Error adding comment:", err);
     } finally {
