@@ -46,7 +46,7 @@ export default function BrowseQuestion({
           </div>
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col space-y-2 text-sm  overflow-hidden"
+            className="flex flex-col space-y-2 text-sm max-h-[110px] overflow-hidden"
           >
             {/*max-h-[150px]*/}
             {tags.map((tag: Tag) => (
@@ -63,16 +63,18 @@ export default function BrowseQuestion({
                 <span className="text-slate-700">{tag.name}</span>
               </label>
             ))}
+          </form>
+          {tags.length > 5 ? (
             <div className="mt-3">
               <p className="text-slate-700 text-sm underline cursor-pointer">
                 Show more filters
               </p>
             </div>
+          ) : null}
 
-            <div className="mt-4">
-              <PillButton type="submit">Apply</PillButton>
-            </div>
-          </form>
+          <div className="mt-4">
+            <PillButton type="submit">Apply</PillButton>
+          </div>
         </Card>
       </Sidebar>
 
