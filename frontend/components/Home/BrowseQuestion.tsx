@@ -19,6 +19,7 @@ export default function BrowseQuestion({
   questions: Array<Question>;
 }) {
   const [appliedTags, setAppliedTags] = useState<Set<string>>(new Set());
+  const [filterExpanded, setfilterExpanded] = useState<boolean>(false);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,37 +45,44 @@ export default function BrowseQuestion({
           <div className="mb-3 text-md font-semibold text-slate-900">
             Filter
           </div>
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col space-y-2 text-sm max-h-[110px] overflow-hidden"
-          >
-            {/*max-h-[150px]*/}
-            {tags.map((tag: Tag) => (
-              <label
-                key={tag.tag_id}
-                className="inline-flex cursor-pointer items-center gap-2"
-              >
-                <input
-                  type="checkbox"
-                  name="tags"
-                  value={tag.name}
-                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600"
-                />
-                <span className="text-slate-700">{tag.name}</span>
-              </label>
-            ))}
-          </form>
-          {tags.length > 5 ? (
-            <div className="mt-3">
-              <p className="text-slate-700 text-sm underline cursor-pointer">
-                Show more filters
-              </p>
+          <form onSubmit={handleSubmit} className="flex flex-col text-sm">
+            <div
+              className="flex flex-col space-y-2 text-sm overflow-hidden"
+              style={{
+                maxHeight: filterExpanded ? "fit-content" : "110px",
+              }}
+            >
+              {/*max-h-[150px]*/}
+              {tags.map((tag: Tag) => (
+                <label
+                  key={tag.tag_id}
+                  className="inline-flex cursor-pointer items-center gap-2"
+                >
+                  <input
+                    type="checkbox"
+                    name="tags"
+                    value={tag.name}
+                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600"
+                  />
+                  <span className="text-slate-700">{tag.name}</span>
+                </label>
+              ))}
             </div>
-          ) : null}
+            {tags.length > 5 ? (
+              <div className="mt-3">
+                <p
+                  className="text-slate-700 text-sm underline cursor-pointer"
+                  onClick={() => setfilterExpanded((prev) => !prev)}
+                >
+                  {filterExpanded ? "Show less filters" : "Show more filters"}
+                </p>
+              </div>
+            ) : null}
 
-          <div className="mt-4">
-            <PillButton type="submit">Apply</PillButton>
-          </div>
+            <div className="mt-4">
+              <PillButton type="submit">Apply</PillButton>
+            </div>
+          </form>
         </Card>
       </Sidebar>
 
