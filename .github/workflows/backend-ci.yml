@@ -1,0 +1,68 @@
+name: ⚙️ Backend CI
+
+on:
+  push:
+    branches:
+      - '*'
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Setup Node.js (assuming Node backend)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📦 Install Backend Dependencies
+        working-directory: ./backend
+        run: npm install
+
+      - name: 🧪 Run Backend Tests
+        working-directory: ./backend
+        run: npm test
+      
+      # (Optional) Add a 'deploy' job here if you need to build and push the backend Docker image on main
+  # --- 2. Deployment Job (Build and Push Docker) ---
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test # Must pass tests first
+    # This step ensures deployment only runs on the 'main' branch
+    if: |
+      github.ref == 'refs/heads/main' || 
+      github.ref == 'refs/heads/circleci-project-setup'
+    
+    
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🔑 Set up QEMU (for multi-platform Docker builds)
+        uses: docker/setup-qemu-action@v3
+
+      - name: 🏗️ Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔐 Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: 🐳 Build and Push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            kagasumi/praxis-backend:latest
+            kagasumi/praxis-backend:${{ github.sha }}
+          cache-from: type=gha # Use GitHub Actions caching for layers
+          cache-to: type=gha,mode=max
