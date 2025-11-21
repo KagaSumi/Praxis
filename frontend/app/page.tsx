@@ -8,12 +8,13 @@ import { Tag, TagModel } from "../model/Tag";
 
 // Components
 import Navbar from "../components/Navbar";
+import { API_BASE_URL } from "../lib/config";
 import HomeClient from "../components/HomeClient";
 import BrowseQuestion from "../components/Home/BrowseQuestion";
 
 export default async function PraxisPage() {
   // questions
-  const res = await fetch("http://localhost:3000/api/questions");
+  const res = await fetch(`${API_BASE_URL}/api/questions`);
   if (!res.ok) throw new Error("Failed to fetch Question");
   const questions: Array<Question> = await res.json();
 
@@ -28,7 +29,7 @@ export default async function PraxisPage() {
   });
 
   // tags
-  const tagRes = await fetch("http://localhost:3000/api/tags", {
+  const tagRes = await fetch(`${API_BASE_URL}/api/tags`, {
     method: "GET",
   });
   if (!tagRes.ok) throw new Error("Failed to fetch tags");

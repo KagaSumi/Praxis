@@ -7,6 +7,7 @@ import Navbar from "../../../components/Navbar";
 import Sidebar from "../../../components/Sidebar";
 import QuestionCard from "../../../components/Card/QuestionCard/QuestionCard";
 import AnswerCard from "../../../components/Card/AnswerCard/AnswerCard";
+import { API_BASE_URL } from "../../../lib/config";
 
 import {
   QuestionWithAnswerModel,
@@ -20,7 +21,7 @@ export default async function QuestionIdPage({
   params: Params;
 }) {
   const { id } = await params;
-  const res = await fetch(`http://localhost:3000/api/questions/${id}`);
+  const res = await fetch(`${API_BASE_URL}/api/questions/${id}`);
   if (res.status === 404) {
     notFound();
   }

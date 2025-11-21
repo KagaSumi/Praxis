@@ -5,6 +5,7 @@ import { useAuth } from "../../components/AuthContext";
 import { useRouter } from "next/navigation";
 import Card from "../../components/Card/Card";
 import PillButton from "../../components/Card/PillButton";
+import { API_BASE_URL } from "../../lib/config";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:3000/api/users/signin", {
+      const res = await fetch(`${API_BASE_URL}/api/users/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

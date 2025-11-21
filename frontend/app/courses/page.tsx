@@ -1,6 +1,7 @@
 'use client'
 import React, { useState } from "react";
 import Navbar from "../../components/Navbar";
+import { API_BASE_URL } from "../../lib/config";
 import Card from "../../components/Card/Card";
 import ViewPostCard from "../../components/ViewPostCard";
 
@@ -17,7 +18,7 @@ export default function CoursesPage() {
         async function fetchPosts() {
             setLoading(true);
             try {
-                const res = await fetch("http://localhost:3000/api/questions");
+                const res = await fetch(`${API_BASE_URL}/api/questions`);
                 if (!res.ok) throw new Error("Failed to fetch questions");
                 const data = await res.json();
                 setPosts(data);
@@ -34,7 +35,7 @@ export default function CoursesPage() {
         async function fetchCourses() {
             setCoursesLoading(true);
             try {
-                const res = await fetch("http://localhost:3000/api/courses");
+                const res = await fetch(`${API_BASE_URL}/api/courses`);
                 if (!res.ok) throw new Error("Failed to fetch courses");
                 const data = await res.json();
                 // do this until we harmonize our naming conventions...

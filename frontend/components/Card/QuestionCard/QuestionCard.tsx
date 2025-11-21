@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-
+import { API_BASE_URL } from "../../../lib/config";
 // components
 import QuestionView from "./QuestionView";
 import QuestionEdit from "./QuestionEdit";
@@ -41,7 +41,7 @@ export default function QuestionCard({
     }
 
     const newContentJson = JSON.stringify(newContent);
-    await fetch(`http://localhost:3000/api/questions/${question.questionId}`, {
+    await fetch(`${API_BASE_URL}/api/questions/${question.questionId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -58,7 +58,7 @@ export default function QuestionCard({
     }
 
     const res = await fetch(
-      `http://localhost:3000/api/questions/${question.questionId}`,
+      `${API_BASE_URL}/api/questions/${question.questionId}`,
       {
         method: "DELETE",
       },

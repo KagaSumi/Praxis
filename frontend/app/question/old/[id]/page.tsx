@@ -28,7 +28,8 @@ export default async function QuestionIdPage({
   params: Params;
 }) {
   const { id } = await params;
-  const res = await fetch(`http://localhost:3000/api/questions/${id}`);
+  const { API_BASE_URL } = await import('../../../../lib/config');
+  const res = await fetch(`${API_BASE_URL}/api/questions/${id}`);
 
   if (!res.ok) throw new Error("Failed to fetch Question");
   const questionJson = await res.json();

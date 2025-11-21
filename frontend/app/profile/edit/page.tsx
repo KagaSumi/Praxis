@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Card from "../../../components/Card/Card";
 import PillButton from "../../../components/Card/PillButton";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "../../../lib/config";
 
 const nameRegex = /^[a-zA-Z\s'-]{2,}$/;
 const studentNoRegex = /^a0\d{7}$/i;
@@ -27,7 +28,7 @@ export default function EditProfilePage() {
         const userId = loggedIn?.userId ?? loggedIn?.user_id ?? loggedIn?.id ?? null;
         if (!userId) return;
 
-        const res = await fetch(`http://localhost:3000/api/users/${userId}`);
+        const res = await fetch(`${API_BASE_URL}/api/users/${userId}`);
         if (!res.ok) return;
         const u = await res.json();
         setFirstName(u.first_name || "");
@@ -79,7 +80,7 @@ export default function EditProfilePage() {
         payload.currentPassword = currentPassword;
       }
 
-      const res = await fetch(`http://localhost:3000/api/users/${userId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

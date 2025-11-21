@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { API_BASE_URL } from "../../../lib/config";
 
 // components
 import AnswerView from "./AnswerView";
@@ -41,7 +42,8 @@ export default function AnswerCard({
     console.log(newContent);
 
     const newContentJson = JSON.stringify(newContent);
-    await fetch(`http://localhost:3000/api/answers/${answer.answerId}`, {
+    console.log(newContentJson);
+    await fetch(`${API_BASE_URL}/api/answers/${answer.answerId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -57,9 +59,7 @@ export default function AnswerCard({
       return;
     }
 
-    await fetch(`http://localhost:3000/api/answers/${answer.answerId}`, {
-      method: "DELETE",
-    });
+    await fetch(`${API_BASE_URL}/api/answers/${answer.answerId}`, { method: "DELETE" });
 
     window.location.reload();
   }

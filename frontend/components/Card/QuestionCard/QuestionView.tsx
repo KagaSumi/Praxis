@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { formatDate } from "../../../helpers/formatDate";
+import { API_BASE_URL } from "../../../lib/config";
 
 // components
 import Card from "../Card";
@@ -50,7 +51,7 @@ export default function QuestionView({
     setLoading(true);
     try {
       const typeNum = isUp ? 1 : 0;
-      const url = `http://localhost:3000/api/questions/${question.questionId}/rate`;
+      const url = `${API_BASE_URL}/api/questions/${question.questionId}/rate`;
 
       const res = await fetch(url, {
         method: "POST",
@@ -77,9 +78,7 @@ export default function QuestionView({
     async function loadCourse() {
       try {
         setCourseLoading(true);
-        const res = await fetch(
-          `http://localhost:3000/api/courses/${question.courseId}`,
-        );
+        const res = await fetch(`${API_BASE_URL}/api/courses/${question.courseId}`);
         if (!res.ok) throw new Error("Failed to load course");
         const data = await res.json();
         setCourseName(data?.name ?? data?.code ?? null);

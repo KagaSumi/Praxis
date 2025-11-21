@@ -1,6 +1,7 @@
 'use client'
 import React, { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
+import { API_BASE_URL } from "../../lib/config";
 import Card from "../../components/Card/Card";
 import ViewPostCard from "../../components/ViewPostCard";
 import PillButton from "../../components/Card/PillButton";
@@ -15,7 +16,7 @@ export default function TagsPage() {
     async function fetchPosts() {
       setLoading(true);
       try {
-        const res = await fetch("http://localhost:3000/api/questions");
+        const res = await fetch(`${API_BASE_URL}/api/questions`);
         if (!res.ok) throw new Error("Failed to fetch questions");
         const data = await res.json();
         setPosts(data || []);

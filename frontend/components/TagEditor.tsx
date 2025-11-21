@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { API_BASE_URL } from "../lib/config";
 
 export default function TagEditor({
     value,
@@ -19,7 +20,7 @@ export default function TagEditor({
         async function load() {
             setLoading(true);
             try {
-                const res = await fetch("http://localhost:3000/api/tags");
+                const res = await fetch(`${API_BASE_URL}/api/tags`);
                 if (!res.ok) throw new Error("Failed to fetch tags");
                 const data = await res.json();
                 const normalized = (data || []).map((t: any) => ({ tag_id: t.tag_id ?? t.id ?? t.tagId, name: (t.name ?? "").toString() }));

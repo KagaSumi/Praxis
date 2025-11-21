@@ -6,6 +6,7 @@ import Navbar from "../../components/Navbar";
 import Card from "../../components/Card/Card";
 import ViewPostCard from "../../components/ViewPostCard";
 import PillButton from "../../components/Card/PillButton";
+import { API_BASE_URL } from "../../lib/config";
 
 import { QuestionWithAnswerModel, QuestionWithAnswer } from "../../model/QuestionModel";
 
@@ -37,7 +38,7 @@ export default function ProfilePage() {
         }
 
         // Get user info for the logged-in user
-        const userRes = await fetch(`http://localhost:3000/api/users/${userId}`);
+        const userRes = await fetch(`${API_BASE_URL}/api/users/${userId}`);
         if (userRes.ok) {
           setUser(await userRes.json());
         } else {
@@ -45,14 +46,14 @@ export default function ProfilePage() {
         }
 
         // Get all user questions
-        const res = await fetch("http://localhost:3000/api/questions");
+        const res = await fetch(`${API_BASE_URL}/api/questions`);
         if (!res.ok) throw new Error("Failed to fetch questions");
         const questionsJson: any[] = await res.json();
 
         const userQuestions = questionsJson.filter((q) => q.userId === userId);
 
         // Get all user answers
-        const answersRes = await fetch(`http://localhost:3000/api/users/${userId}/answers`);
+        const answersRes = await fetch(`${API_BASE_URL}/api/users/${userId}/answers`);
         let answersJson: any[] = [];
         if (answersRes.ok) {
           answersJson = await answersRes.json();

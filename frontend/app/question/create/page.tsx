@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "../../../components/Navbar";
+import { API_BASE_URL } from "../../../lib/config";
 import Card from "../../../components/Card/Card";
 import PillButton from "../../../components/Card/PillButton";
 import TagEditor from "../../../components/TagEditor";
@@ -22,7 +23,7 @@ export default function CreateQuestionPage() {
         async function fetchCourses() {
             setCoursesLoading(true);
             try {
-                const res = await fetch("http://localhost:3000/api/courses");
+                const res = await fetch(`${API_BASE_URL}/api/courses`);
                 if (!res.ok) throw new Error("Failed to fetch courses");
                 const data = await res.json();
                 const normalized = data.map((c: any) => ({
@@ -62,7 +63,7 @@ export default function CreateQuestionPage() {
                 alert("You must be signed in to post a question.");
                 return;
             }
-            const res = await fetch("http://localhost:3000/api/questions/", {
+            const res = await fetch(`${API_BASE_URL}/api/questions/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
