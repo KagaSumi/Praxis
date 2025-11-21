@@ -17,7 +17,7 @@ services:
       - app-network
 
   frontend:
-    build: ./frontend/
+    image: kagasumi/praxis-frontend:latest
     container_name: praxis-frontend
     environment:
       - NEXT_PUBLIC_API_BASE_URL=http://praxis-backend:3000
@@ -27,7 +27,7 @@ services:
       - app-network
 
   backend:
-    build: ./backend/
+    image: kagasumi/praxis-backend:latest
     container_name: praxis-backend
     environment:
       - DB_HOST=database
@@ -43,7 +43,7 @@ services:
       - app-network
 
   database:
-    build: ./database/
+    image: kagasumi/praxis-database:latest
     container_name: praxis-database
     environment:
       - MYSQL_ROOT_PASSWORD=your_secure_root_password
