@@ -18,7 +18,7 @@ jobs:
 
       - name: 🧪 Run Database Schema Validation/Tests
         working-directory: ./database
-        run: echo "Database: Running schema validation/tests."
+        run: echo
 
   deploy:
     runs-on: ubuntu-latest
