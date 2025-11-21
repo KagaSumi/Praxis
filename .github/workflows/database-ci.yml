@@ -17,9 +17,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🧪 Run Database Schema Validation/Tests
-        # Example:
-        # working-directory: ./database
-        # run: ./run_db_migrations_check.sh
+        working-directory: ./database
         run: echo "Database: Running schema validation/tests."
 
   deploy:
