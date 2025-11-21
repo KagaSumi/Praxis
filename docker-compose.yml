@@ -17,8 +17,8 @@ services:
       - app-network
 
   frontend:
-    image: frontend:test
-    container_name: kagasumi/praxis-frontend:latest
+    image: kagasumi/praxis-frontend:latest
+    container_name: praxis-frontend
     environment:
       - NEXT_PUBLIC_API_BASE_URL=http://praxis-backend:3000
     expose:
