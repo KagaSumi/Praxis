@@ -1,0 +1,11 @@
+# Ignore build directories
+.next
+dist
+
+# Ignore node modules from your local machine
+node_modules
+
+# Ignore common files
+.git
+.gitignore
+npm-debug.log

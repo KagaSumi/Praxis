@@ -4,6 +4,7 @@ import Card from "../../components/Card/Card";
 import PillButton from "../../components/Card/PillButton";
 import { useRouter } from "next/navigation";
 import Link from "next/dist/client/link";
+import { API_BASE_URL } from "../../lib/config";
 
 // Validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -68,7 +69,7 @@ export default function SignupPage() {
 
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:3000/api/users/signup", {
+      const res = await fetch(`${API_BASE_URL}/api/users/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

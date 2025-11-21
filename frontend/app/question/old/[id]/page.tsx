@@ -3,30 +3,33 @@
 import React from "react";
 
 // Auth
-import { useAuth } from "../../../components/AuthContext";
+import { useAuth } from "../../../../components/AuthContext";
 
 // Components
-import Navbar from "../../../components/Navbar";
-import Sidebar from "../../../components/Sidebar";
-import Card from "../../../components/Card/Card";
-import PillButton from "../../../components/Card/PillButton";
-import QACard from "../../../components/QACard";
-import Tag from "../../../components/Card/Tag";
-import { formatDate } from '../../../helpers/formatDate';
+import Navbar from "../../../../components/Navbar";
+import Sidebar from "../../../../components/Sidebar";
+import Card from "../../../../components/Card/Card";
+import PillButton from "../../../../components/Card/PillButton";
+import QACard from "../../../../components/QACard";
+import Tag from "../../../../components/Card/Tag";
+import { formatDate } from '../../../../helpers/formatDate';
 
 // Models and Types
-import { QuestionWithAnswerModel, QuestionWithAnswer } from "../../../model/QuestionModel";
-import { Answer } from "../../../model/AnswerModel";
+import { QuestionWithAnswerModel, QuestionWithAnswer } from "../../../../model/QuestionModel";
+import { Answer } from "../../../../model/AnswerModel";
 
 // Enums
-import { QA } from "../../../components/QACard";
+import { QA } from "../../../../components/QACard";
 
+type Params = Promise<{ id: string }>
 export default async function QuestionIdPage({
   params,
 }: {
-  params: { id: string };
+  params: Params;
 }) {
-  const res = await fetch(`http://localhost:3000/api/questions/${params.id}`);
+  const { id } = await params;
+  const { API_BASE_URL } = await import('../../../../lib/config');
+  const res = await fetch(`${API_BASE_URL}/api/questions/${id}`);
 
   if (!res.ok) throw new Error("Failed to fetch Question");
   const questionJson = await res.json();

@@ -4,6 +4,7 @@ import Card from "../components/Card/Card";
 import Stat from "../components/Card/Stat";
 import Link from "next/dist/client/link";
 import { useAuth } from "./AuthContext";
+import { API_BASE_URL } from "../lib/config";
 
 export default function RightSidebar() {
   const { isLoggedIn, userId } = useAuth();
@@ -27,14 +28,12 @@ export default function RightSidebar() {
         if (!isLoggedIn || !userId) return;
 
         // get user info from backend server
-        const userRes = await fetch(
-          `http://localhost:3000/api/users/${userId}`,
-        );
+        const userRes = await fetch(`${API_BASE_URL}/api/users/${userId}`);
         const userJson = userRes.ok ? await userRes.json() : null;
         setUser(userJson);
 
         // fetch all questions, should probably make an endpoint for user stats
-        const qRes = await fetch("http://localhost:3000/api/questions");
+        const qRes = await fetch(`${API_BASE_URL}/api/questions`);
         let qJson: any[] = [];
         if (qRes.ok) qJson = await qRes.json();
         const myQuestions = qJson.filter((q) => q.userId === userId);
@@ -56,9 +55,7 @@ export default function RightSidebar() {
           setRecentQuestion(null);
         }
 
-        const aRes = await fetch(
-          `http://localhost:3000/api/users/${userId}/answers`,
-        );
+        const aRes = await fetch(`${API_BASE_URL}/api/users/${userId}/answers`);
         let aJson: any[] = [];
         if (aRes.ok) aJson = await aRes.json();
         setAnswersCount(aJson.length);

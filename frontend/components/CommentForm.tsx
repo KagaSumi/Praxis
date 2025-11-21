@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { API_BASE_URL } from "../lib/config";
+
 // component
 import PillButton from "./Card/PillButton";
 
@@ -35,7 +37,7 @@ async function addComment({
     });
   }
 
-  const res = await fetch("http://localhost:3000/api/comments", {
+  const res = await fetch(`${API_BASE_URL}/api/comments`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body,

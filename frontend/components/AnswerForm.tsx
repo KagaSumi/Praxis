@@ -2,7 +2,9 @@
 
 import React, { useState } from "react";
 import PillButton from "./Card/PillButton";
+import { API_BASE_URL } from "../lib/config";
 import { useRouter } from "next/navigation";
+
 
 // --- custom hook to handle form state ---
 function useAnswerForm() {
@@ -32,7 +34,7 @@ async function submitAnswer({
     is_anonymous: isAnonymous, // ✅ snake_case key
   });
 
-  const res = await fetch("http://localhost:3000/api/answers", {
+  const res = await fetch(`${API_BASE_URL}/api/answers`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body,

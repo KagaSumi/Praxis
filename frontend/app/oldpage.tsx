@@ -13,10 +13,11 @@ import PillButton from "../components/Card/PillButton";
 import Stat from "../components/Card/Stat";
 import HomeClient from "../components/HomeClient";
 import Sidebar from "../components/Sidebar";
+import { API_BASE_URL } from "../lib/config";
 
 export default async function PraxisPage() {
   // questions
-  const res = await fetch("http://localhost:3000/api/questions");
+  const res = await fetch(`${API_BASE_URL}/api/questions`);
   if (!res.ok) throw new Error("Failed to fetch Question");
   const questionsJson: Array<Question> = await res.json();
 
@@ -30,7 +31,7 @@ export default async function PraxisPage() {
   });
 
   // tags
-  const tagRes = await fetch("http://localhost:3000/api/tags", {
+  const tagRes = await fetch(`${API_BASE_URL}/api/tags`, {
     method: "GET",
   });
   if (!tagRes.ok) throw new Error("Failed to fetch tags");

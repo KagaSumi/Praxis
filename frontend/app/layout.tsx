@@ -1,6 +1,7 @@
 
 import "./globals.css";
 import { AuthProvider } from "../components/AuthContext";
+//require("dotenv").config();
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
