@@ -1,0 +1,7 @@
+# Ignore node modules from your local machine
+node_modules
+ApiEndpoints.docx
+
+# Ignore common files
+.git
+.gitignore

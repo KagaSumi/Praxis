@@ -28,7 +28,6 @@ jobs:
         working-directory: ./backend
         run: npm test
       
-      # (Optional) Add a 'deploy' job here if you need to build and push the backend Docker image on main
   # --- 2. Deployment Job (Build and Push Docker) ---
   deploy:
     runs-on: ubuntu-latest
