@@ -1,7 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ViewPostCard from "../components/ViewPostCard";
-import { vi } from "vitest";
 import { formatDate } from "../helpers/formatDate";
 
 describe("ViewPostCard", () => {
