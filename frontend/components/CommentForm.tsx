@@ -70,7 +70,7 @@ export default function CommentForm({
 
   async function fetchQuestionContent(qId: number) {
     try {
-      const res = await fetch(`http://localhost:3000/api/questions/${qId}`);
+      const res = await fetch(`${API_BASE_URL}/api/questions/${qId}`);
       if (!res.ok) return null;
       const data = await res.json();
       return data?.content ?? null;
@@ -119,7 +119,7 @@ export default function CommentForm({
         answer_id: answerId,
       });
 
-      const res = await fetch("http://localhost:3000/api/comments/generate-ai-comment", {
+      const res = await fetch(`${API_BASE_URL}/api/comments/generate-ai-comment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body,
@@ -169,11 +169,11 @@ export default function CommentForm({
         });
       } else {
         setContent("");
-        window.location.reload();
       }
     } catch (err) {
       console.error("Error adding comment:", err);
     } finally {
+      window.location.reload();
       setSubmitting(false);
     }
   }

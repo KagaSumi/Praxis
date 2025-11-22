@@ -6,6 +6,7 @@ import { Answer } from "../../../model/AnswerModel";
 import { formatDate } from "../../../helpers/formatDate";
 import CommentCard from "../CommentCard/CommentCard";
 import CommentForm from "../../CommentForm";
+import { API_BASE_URL } from "../../../lib/config";
 
 export default function AnswerView({
   answer,
@@ -47,7 +48,7 @@ export default function AnswerView({
     setLoading(true);
     try {
       const typeNum = isUp ? 1 : 0;
-      const url = `http://localhost:3000/api/answers/${answer.answerId}/rate`;
+      const url = `${API_BASE_URL}/api/answers/${answer.answerId}/rate`;
 
       const res = await fetch(url, {
         method: "POST",
@@ -293,8 +294,7 @@ function RefineAIForm({
       }
 
       const generateBody = JSON.stringify(payload);
-
-      const genRes = await fetch("http://localhost:3000/api/comments/generate-ai-comment", {
+      const genRes = await fetch(`${API_BASE_URL}/api/comments/generate-ai-comment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: generateBody,
