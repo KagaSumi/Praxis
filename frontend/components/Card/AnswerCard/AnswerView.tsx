@@ -294,8 +294,7 @@ function RefineAIForm({
       }
 
       const generateBody = JSON.stringify(payload);
-
-      const genRes = await fetch("http://localhost:3000/api/comments/generate-ai-comment", {
+      const genRes = await fetch(`${API_BASE_URL}/api/comments/generate-ai-comment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: generateBody,

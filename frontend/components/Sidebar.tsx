@@ -26,7 +26,7 @@ export default function Sidebar({ children }: { children?: React.ReactNode }) {
               </div>
             </div>
           </Link>
-          <Link href="#">
+          {/* <Link href="#">
             <div className="w-full py-1.5 px-0 flex items-center gap-2 text-slate-900 hover:bg-gray-200 rounded-sm transition duration-300 ease-in-out cursor-pointer">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -40,7 +40,7 @@ export default function Sidebar({ children }: { children?: React.ReactNode }) {
               </svg>
               <span className="font-medium">Saved</span>
             </div>
-          </Link>
+          </Link>*/}
         </Card>
         {children}
       </div>

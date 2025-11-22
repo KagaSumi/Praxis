@@ -4,6 +4,7 @@ import { useState } from "react";
 // components
 import CommentView from "./CommentView";
 import CommentEdit from "./CommentEdit";
+import { API_BASE_URL } from "../../../lib/config";
 
 // model
 import { Comment } from "../../../model/CommentModel";
@@ -39,7 +40,7 @@ export default function CommentCard({
     }
 
     const newContentJson = JSON.stringify(newContent);
-    await fetch(`http://localhost:3000/api/comments/${comment.comment_id}`, {
+    await fetch(`${API_BASE_URL}/api/comments/${comment.comment_id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -57,7 +58,7 @@ export default function CommentCard({
 
     const body = JSON.stringify({ user_id: comment.user_id });
 
-    await fetch(`http://localhost:3000/api/comments/${comment.comment_id}`, {
+    await fetch(`${API_BASE_URL}/api/comments/${comment.comment_id}`, {
       method: "DELETE",
       body: body,
       headers: {
