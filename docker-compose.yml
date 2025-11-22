@@ -35,6 +35,7 @@ services:
       - MYSQL_USER=Praxis
       - MYSQL_PASSWORD=your_praxis_password
       - MYSQL_DATABASE=qa_platform
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     expose:
       - "3000"
     depends_on:
