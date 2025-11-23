@@ -12,7 +12,8 @@ import { API_BASE_URL } from "../lib/config";
 import HomeClient from "../components/HomeClient";
 import BrowseQuestion from "../components/Home/BrowseQuestion";
 
-export default async function PraxisPage() {
+export default async function PraxisPage(props: any) {
+  const searchParams = props?.searchParams ?? {};
   // questions
   const res = await fetch(`${API_BASE_URL}/api/questions`);
   if (!res.ok) throw new Error("Failed to fetch Question");
@@ -50,7 +51,7 @@ export default async function PraxisPage() {
 
       {/* Content */}
       <main className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_320px] lg:px-8">
-        <BrowseQuestion tags={tags} questions={questions} />
+        <BrowseQuestion tags={tags} questions={questions} initialSearch={String(searchParams?.q ?? "")} />
         {/* Right Sidebar (Client Component) */}
         <HomeClient />
       </main>

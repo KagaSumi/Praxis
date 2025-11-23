@@ -1,11 +1,35 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useAuth } from "./AuthContext";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 
 export default function Navbar() {
   const { isLoggedIn } = useAuth();
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+
+  function onSubmitSearch(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = query.trim();
+    if (trimmed.length === 0) {
+      // clear any previous stored search
+      try { localStorage.removeItem('praxis-search'); } catch (e) { }
+      try {
+        // notify any listeners in the same tab to clear their state
+        const evt = new CustomEvent('praxis-search-changed', { detail: '' });
+        window.dispatchEvent(evt as Event);
+      } catch (e) { }
+      return router.push('/');
+    }
+    try { localStorage.setItem('praxis-search', trimmed); } catch (e) { }
+    try {
+      const evt = new CustomEvent('praxis-search-changed', { detail: trimmed });
+      window.dispatchEvent(evt as Event);
+    } catch (e) { }
+    router.push(`/?q=${encodeURIComponent(trimmed)}`);
+  }
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/70 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
@@ -23,10 +47,14 @@ export default function Navbar() {
 
         {/* Search bar */}
         <div className="min-w-[70%] md:min-w-[50%]">
-          <input
-            placeholder="Search..."
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none ring-blue-600 focus:ring-2"
-          />
+          <form onSubmit={onSubmitSearch}>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search posts, content or tags..."
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none ring-blue-600 focus:ring-2"
+            />
+          </form>
         </div>
 
         {/* Nav links and profile */}

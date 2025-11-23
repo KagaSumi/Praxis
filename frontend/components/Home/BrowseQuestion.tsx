@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 // models
 import { Tag, TagModel } from "../../model/Tag";
@@ -14,12 +14,66 @@ import PillButton from "../Card/PillButton";
 export default function BrowseQuestion({
   tags,
   questions,
+  initialSearch = "",
 }: {
   tags: Array<Tag>;
   questions: Array<Question>;
+  initialSearch?: string;
 }) {
   const [appliedTags, setAppliedTags] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState<string>(initialSearch || "");
   const [filterExpanded, setfilterExpanded] = useState<boolean>(false);
+
+  // Ensure client-side navigations that set search via Navbar are respected.
+  // If initialSearch is empty, check localStorage for a stored search term (set by Navbar),
+  // and populate searchQuery from it on mount.
+  useEffect(() => {
+    // debug: help trace why searches may not apply
+    console.debug("BrowseQuestion: initialSearch=", initialSearch);
+
+    if ((initialSearch || "").trim().length === 0) {
+      try {
+        const stored = localStorage.getItem("praxis-search") || "";
+        console.debug("BrowseQuestion: stored search=", stored);
+        if (stored && stored.trim().length > 0) {
+          setSearchQuery(stored);
+        }
+      } catch (e) {
+        // ignore localStorage errors
+      }
+    } else {
+      setSearchQuery(initialSearch);
+    }
+  }, [initialSearch]);
+
+  // Listen for search changes dispatched from Navbar (same-tab) or storage events (other tabs)
+  useEffect(() => {
+    function onPraxisSearchChanged(e: Event) {
+      try {
+        const detail = (e as CustomEvent).detail;
+        const v = typeof detail === "string" ? detail : "";
+        console.debug("BrowseQuestion: praxis-search-changed event=", v);
+        setSearchQuery(v || "");
+      } catch (err) {
+        // ignore
+      }
+    }
+
+    function onStorage(e: StorageEvent) {
+      if (e.key === "praxis-search") {
+        console.debug("BrowseQuestion: storage event newValue=", e.newValue);
+        setSearchQuery(e.newValue || "");
+      }
+    }
+
+    window.addEventListener("praxis-search-changed", onPraxisSearchChanged as EventListener);
+    window.addEventListener("storage", onStorage as EventListener);
+
+    return () => {
+      window.removeEventListener("praxis-search-changed", onPraxisSearchChanged as EventListener);
+      window.removeEventListener("storage", onStorage as EventListener);
+    };
+  }, []);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -30,12 +84,31 @@ export default function BrowseQuestion({
   }
 
   const filteredQuestions = useMemo(() => {
-    if (appliedTags.size === 0) return questions;
+    // start with full list
+    let out = questions;
 
-    return questions.filter((question) =>
-      question.tags?.some((tag) => appliedTags.has(tag)),
-    );
-  }, [questions, appliedTags]);
+    // apply tag filters
+    if (appliedTags.size > 0) {
+      out = out.filter((question) =>
+        question.tags?.some((tag) => appliedTags.has(tag)),
+      );
+    }
+
+    // apply search query (title, content or tags)
+    const q = (searchQuery || "").trim().toLowerCase();
+    if (q.length === 0) return out;
+    const terms = q.split(/\s+/).filter(Boolean);
+
+    return out.filter((question) => {
+      const title = (question.title || "").toLowerCase();
+      const content = (question.content || "").toLowerCase();
+      const tagsLower = (question.tags || []).map((t) => t.toLowerCase());
+
+      return terms.every((term) =>
+        title.includes(term) || content.includes(term) || tagsLower.some((t) => t.includes(term)),
+      );
+    });
+  }, [questions, appliedTags, searchQuery]);
 
   return (
     <div className="grid gap-6 grid-cols-[260px_1fr]">
@@ -89,34 +162,33 @@ export default function BrowseQuestion({
       {/* Main Feed */}
       <section className="space-y-6">
         {/* <Card>
-        <div className="flex flex-row gap-3">
-          <input
-            placeholder="Ask a new question..."
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none ring-blue-600 focus:ring-2"
-          />
+          <div className="flex flex-row gap-3">
+            <input
+              placeholder="Ask a new question..."
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none ring-blue-600 focus:ring-2"
+            />
 
-          <button
-            title="Create a question"
-            aria-label="New Question"
-            className="hidden rounded-xl border bg-blue-600 border-slate-200 p-2 cursor-pointer hover:bg-blue-700 md:block"
-          >
-            <svg
-              width="30"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-white"
+            <button
+              title="Create a question"
+              aria-label="New Question"
+              className="hidden rounded-xl border bg-blue-600 border-slate-200 p-2 cursor-pointer hover:bg-blue-700 md:block"
             >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-          </button>
-        </div>
-      </Card> */}{" "}
-        {/* hiding this for demo. Eventually should take user input and route to the question/create page with data as title */}
+              <svg
+                width="30"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-white"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+          </div>
+        </Card>{" "} */}
         <Card>
           <div className="flex flex-col gap-4 p-2">
             <h2 className="pl-2 text-xl font-semibold text-slate-900">
