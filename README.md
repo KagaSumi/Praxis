@@ -116,3 +116,67 @@ Ensure containers are running and not restarting.
 
 ## Database connection issues
 Check environment variables in both backend and database services.
+
+# Local Development Docker Compose
+This version of `docker-compose.yml` builds all Praxis services from your local folders instead of pulling images from Docker Hub.
+Use this when you are actively developing changes in the repo.
+```yml
+networks:
+  app-network:
+    driver: bridge
+
+services:
+  gateway:
+    image: nginx:alpine
+    container_name: gateway
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app-network
+
+  frontend:
+    build: ./frontend/
+    container_name: praxis-frontend
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://praxis-backend:3000
+    expose:
+      - "8080"
+    networks:
+      - app-network
+
+  backend:
+    build: ./backend/
+    container_name: praxis-backend
+    environment:
+      - DB_HOST=database
+      - DB_PORT=3306
+      - MYSQL_USER=Praxis
+      - MYSQL_PASSWORD=your_praxis_password
+      - MYSQL_DATABASE=qa_platform
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    expose:
+      - "3000"
+    depends_on:
+      - database
+    networks:
+      - app-network
+
+  database:
+    build: ./database/
+    container_name: praxis-database
+    environment:
+      - MYSQL_ROOT_PASSWORD=your_secure_root_password
+      - MYSQL_DATABASE=qa_platform
+      - MYSQL_USER=Praxis
+      - MYSQL_PASSWORD=your_praxis_password
+    expose:
+      - "3306"
+    networks:
+      - app-network
+```
+
