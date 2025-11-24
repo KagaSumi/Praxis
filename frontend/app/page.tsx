@@ -11,6 +11,8 @@ import Navbar from "../components/Navbar";
 import { API_BASE_URL } from "../lib/config";
 import HomeClient from "../components/HomeClient";
 import BrowseQuestion from "../components/Home/BrowseQuestion";
+import Sidebar from "../components/Sidebar";
+import FilterPanel from "../components/Home/FilterPanel";
 
 export default async function PraxisPage(props: any) {
   const searchParams = props?.searchParams ?? {};
@@ -50,8 +52,13 @@ export default async function PraxisPage(props: any) {
       <Navbar />
 
       {/* Content */}
-      <main className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_320px] lg:px-8">
+      <main className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[260px_1fr_320px] lg:px-8">
+        <Sidebar>
+          <FilterPanel tags={tags} />
+        </Sidebar>
+
         <BrowseQuestion tags={tags} questions={questions} initialSearch={String(searchParams?.q ?? "")} />
+
         {/* Right Sidebar (Client Component) */}
         <HomeClient />
       </main>

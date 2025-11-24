@@ -6,10 +6,8 @@ import { Tag, TagModel } from "../../model/Tag";
 import { Question } from "../../model/QuestionModel";
 
 // components
-import Sidebar from "../Sidebar";
 import ViewPostCard from "../ViewPostCard";
 import Card from "../Card/Card";
-import PillButton from "../Card/PillButton";
 
 export default function BrowseQuestion({
   tags,
@@ -75,6 +73,21 @@ export default function BrowseQuestion({
     };
   }, []);
 
+  // Listen for tag filter changes dispatched from page-level FilterPanel
+  useEffect(() => {
+    function onFilterChanged(e: Event) {
+      try {
+        const detail = (e as CustomEvent).detail as string[];
+        setAppliedTags(new Set(detail || []));
+      } catch (err) {
+        // ignore
+      }
+    }
+
+    window.addEventListener("praxis-filter-changed", onFilterChanged as EventListener);
+    return () => window.removeEventListener("praxis-filter-changed", onFilterChanged as EventListener);
+  }, []);
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -111,57 +124,8 @@ export default function BrowseQuestion({
   }, [questions, appliedTags, searchQuery]);
 
   return (
-    <div className="grid gap-6 grid-cols-[260px_1fr]">
-      {/* Left Sidebar */}
-      <Sidebar>
-        <Card>
-          <div className="mb-3 text-md font-semibold text-slate-900">
-            Filter
-          </div>
-          <form onSubmit={handleSubmit} className="flex flex-col text-sm">
-            <div
-              className="flex flex-col space-y-2 text-sm overflow-hidden"
-              style={{
-                maxHeight: filterExpanded ? "fit-content" : "110px",
-              }}
-            >
-              {/*max-h-[150px]*/}
-              {tags.map((tag: Tag) => (
-                <label
-                  key={tag.tag_id}
-                  className="inline-flex cursor-pointer items-center gap-2"
-                >
-                  <input
-                    type="checkbox"
-                    name="tags"
-                    value={tag.name}
-                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600"
-                  />
-                  <span className="text-slate-700">{tag.name}</span>
-                </label>
-              ))}
-            </div>
-            {tags.length > 5 ? (
-              <div className="mt-3">
-                <p
-                  className="text-slate-700 text-sm underline cursor-pointer"
-                  onClick={() => setfilterExpanded((prev) => !prev)}
-                >
-                  {filterExpanded ? "Show less filters" : "Show more filters"}
-                </p>
-              </div>
-            ) : null}
-
-            <div className="mt-4">
-              <PillButton type="submit">Apply</PillButton>
-            </div>
-          </form>
-        </Card>
-      </Sidebar>
-
-      {/* Main Feed */}
-      <section className="space-y-6">
-        {/* <Card>
+    <section className="min-w-0 space-y-6">
+      {/* <Card>
           <div className="flex flex-row gap-3">
             <input
               placeholder="Ask a new question..."
@@ -189,32 +153,31 @@ export default function BrowseQuestion({
             </button>
           </div>
         </Card>{" "} */}
-        <Card>
-          <div className="flex flex-col gap-4 p-2">
-            <h2 className="pl-2 text-xl font-semibold text-slate-900">
-              Newest Questions
-            </h2>
-            <div className="p-1 flex flex-col gap-5">
-              {filteredQuestions.map((q) => (
-                <ViewPostCard
-                  key={q.questionId}
-                  questionId={q.questionId}
-                  title={q.title}
-                  tag={(q as any).tags || (q as any).tag || []}
-                  content={q.content}
-                  username={
-                    q.isAnonymous ? "Anonymous" : `${q.firstname} ${q.lastname}`
-                  }
-                  createdAt={q.createdAt}
-                  upvote={q.upVotes - q.downVotes}
-                  views={q.viewCount}
-                  replyCount={q.answerCount}
-                />
-              ))}
-            </div>
+      <Card>
+        <div className="flex flex-col gap-4 p-2">
+          <h2 className="pl-2 text-xl font-semibold text-slate-900">
+            Newest Questions
+          </h2>
+          <div className="p-1 flex flex-col gap-5">
+            {filteredQuestions.map((q) => (
+              <ViewPostCard
+                key={q.questionId}
+                questionId={q.questionId}
+                title={q.title}
+                tag={(q as any).tags || (q as any).tag || []}
+                content={q.content}
+                username={
+                  q.isAnonymous ? "Anonymous" : `${q.firstname} ${q.lastname}`
+                }
+                createdAt={q.createdAt}
+                upvote={q.upVotes - q.downVotes}
+                views={q.viewCount}
+                replyCount={q.answerCount}
+              />
+            ))}
           </div>
-        </Card>
-      </section>
-    </div>
+        </div>
+      </Card>
+    </section>
   );
 }
