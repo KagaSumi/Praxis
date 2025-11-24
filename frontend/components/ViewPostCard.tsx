@@ -34,7 +34,7 @@ export default function ViewPostCard({
       {/** Header */}
       <div className="mb-2 flex items-start justify-between gap-4">
         <Link href={{ pathname: `/question/${questionId}` }}>
-          <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
+          <h2 className="text-xl font-semibold text-slate-900 break-words">{title}</h2>
         </Link>
       </div>
       <div className="mb-3 text-xs text-slate-500">
@@ -44,7 +44,7 @@ export default function ViewPostCard({
       </div>
 
       {/** Content */}
-      <p className="text-sm text-slate-700">{content}</p>
+      <p className="text-sm text-slate-700 break-words">{content}</p>
 
       {/** Tags */}
       <div className="mt-3 flex flex-row flex-wrap gap-1">
@@ -101,9 +101,11 @@ export default function ViewPostCard({
         </div>
 
         {/** Answer button */}
-        <Link href={questionUrl}>
-          <PillButton>Answer</PillButton>
-        </Link>
+        <div className="flex-shrink-0">
+          <Link href={questionUrl}>
+            <PillButton>Answer</PillButton>
+          </Link>
+        </div>
       </div>
     </Card>
   );
