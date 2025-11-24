@@ -96,20 +96,19 @@ export default function CommentForm({
       if (questionId) questionText = await fetchQuestionContent(questionId);
 
       const promptParts: string[] = [];
-      if (questionText) promptParts.push(`Original question: "${questionText}"`);
+      if (questionText)
+        promptParts.push(`Original question: "${questionText}"`);
       if (parentBody) promptParts.push(`Original AI reply: "${parentBody}"`);
       promptParts.push(`User feedback: "${userFeedback}"`);
 
-      // We ask the AI to return ONLY the JSON object to simplify parsing (not 100% reliable, not sure if there is a better way??)
       const payload = {
         original_question: questionText ?? "",
         original_ai_reply: parentBody ?? "",
         user_feedback: userFeedback,
       };
-      // instructions for the AI, I don't know if there is better language to force a JSON only response
+
       const instruction =
-        'Return a JSON object ONLY with the shape {"reply":"...","prompt":"..."}. ' +
-        'The "reply" value should be the improved AI answer. The "prompt" value should be the exact text you used to generate that answer (include original question, original AI reply, and user feedback). Do not include any other text or explanation.';
+        "Your reply should be the improved AI answer than the original one based on the feedback.";
 
       const prompt = instruction + "\n\n" + JSON.stringify(payload);
 
@@ -119,11 +118,14 @@ export default function CommentForm({
         answer_id: answerId,
       });
 
-      const res = await fetch(`${API_BASE_URL}/api/comments/generate-ai-comment`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-      });
+      const res = await fetch(
+        `${API_BASE_URL}/api/comments/generate-ai-comment`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body,
+        },
+      );
 
       if (!res.ok) {
         const txt = await res.text();
