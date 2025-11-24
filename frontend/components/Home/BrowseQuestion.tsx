@@ -22,19 +22,19 @@ export default function BrowseQuestion({
   const [searchQuery, setSearchQuery] = useState<string>(initialSearch || "");
   const [filterExpanded, setfilterExpanded] = useState<boolean>(false);
 
-  // Ensure client-side navigations that set search via Navbar are respected.
-  // If initialSearch is empty, check localStorage for a stored search term (set by Navbar),
-  // and populate searchQuery from it on mount.
   useEffect(() => {
-    // debug: help trace why searches may not apply
-    console.debug("BrowseQuestion: initialSearch=", initialSearch);
+    // console.debug("BrowseQuestion: initialSearch=", initialSearch);
 
     if ((initialSearch || "").trim().length === 0) {
       try {
+        // Prefer explicit URL `q` param when present (client navigations may include it)
+        const params = new URLSearchParams(window.location.search || "");
+        const urlQ = params.get("q") || "";
         const stored = localStorage.getItem("praxis-search") || "";
-        console.debug("BrowseQuestion: stored search=", stored);
-        if (stored && stored.trim().length > 0) {
-          setSearchQuery(stored);
+        const use = (urlQ && urlQ.trim().length > 0) ? urlQ : stored;
+        // console.debug("BrowseQuestion: urlQ=", urlQ, " stored=", stored);
+        if (use && use.trim().length > 0) {
+          setSearchQuery(use);
         }
       } catch (e) {
         // ignore localStorage errors
@@ -80,12 +80,42 @@ export default function BrowseQuestion({
         const detail = (e as CustomEvent).detail as string[];
         setAppliedTags(new Set(detail || []));
       } catch (err) {
-        // ignore
       }
     }
 
     window.addEventListener("praxis-filter-changed", onFilterChanged as EventListener);
     return () => window.removeEventListener("praxis-filter-changed", onFilterChanged as EventListener);
+  }, []);
+
+  // If the user navigates to the home path with no `q` param, clear any stored search.
+  useEffect(() => {
+    function clearIfHomeNoQuery() {
+      try {
+        const params = new URLSearchParams(window.location.search || "");
+        const q = params.get("q") || "";
+        const path = window.location.pathname || "/";
+        if ((path === "/" || path === "") && (!q || q.trim().length === 0)) {
+          try {
+            localStorage.removeItem("praxis-search");
+          } catch (err) {
+          }
+          setSearchQuery("");
+          try {
+            const evt = new CustomEvent("praxis-search-changed", { detail: "" });
+            window.dispatchEvent(evt as Event);
+          } catch (err) {
+          }
+        }
+      } catch (err) {
+      }
+    }
+
+    // run on mount
+    clearIfHomeNoQuery();
+
+    // also run on popstate (back/forward)
+    window.addEventListener("popstate", clearIfHomeNoQuery);
+    return () => window.removeEventListener("popstate", clearIfHomeNoQuery);
   }, []);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
