@@ -306,7 +306,7 @@ class QuestionService {
         [data.title, data.content, data.isAnonymous || false, data.questionId],
       );
 
-      return await this.getSingleQuestion({ questionId: data.questiod });
+      return await this.getSingleQuestion({ questionId: data.questionId });
     } catch (err) {
       console.error("Error updating question:", err);
       throw new Error(err.message);
