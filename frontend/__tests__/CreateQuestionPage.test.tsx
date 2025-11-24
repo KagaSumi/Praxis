@@ -82,8 +82,9 @@ describe('CreateQuestionPage', () => {
         fireEvent.change(screen.getByPlaceholderText(/Enter your question title/i), { target: { value: 'My question' } });
         fireEvent.change(screen.getByPlaceholderText(/Describe your question in detail/i), { target: { value: 'Details' } });
 
-        // submit the form directly to ensure onSubmit runs
-        const form = container.querySelector('form') as HTMLFormElement;
+        // Submit the form that contains the page's submit button to ensure we target the correct form
+        const postButton = screen.getByRole('button', { name: /Post Question/i });
+        const form = postButton.closest('form') as HTMLFormElement;
         fireEvent.submit(form);
 
         await waitFor(() => expect(alertSpy).toHaveBeenCalledWith('Please select a course.'));
