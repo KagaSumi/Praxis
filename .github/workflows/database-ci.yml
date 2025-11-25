@@ -54,7 +54,8 @@ jobs:
             SELECT score INTO @old_score FROM Question WHERE question_id = 1;
             
             -- Insert a new Upvote (User 6 voting on Question 1)
-            INSERT INTO Votes (vote_type, user_id, question_id) VALUES ('upvote', 6, 1, NULL);
+            -- FIX: Added answer_id to the column list so it matches the 4 values
+            INSERT INTO Votes (vote_type, user_id, question_id, answer_id) VALUES ('upvote', 6, 1, NULL);
             
             -- Check new score
             SELECT score INTO @new_score FROM Question WHERE question_id = 1;
