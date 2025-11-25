@@ -42,37 +42,36 @@ jobs:
 
       - name: 🕵️ Verify Logic (Trigger Test)
         working-directory: ./database
+        shell: bash
         run: |
           # 3. Integration Test
-          # We verify that your Triggers actually work by inserting a vote 
-          # and checking if the Question score updates automatically.
+          # Run the SQL test, save output to a file so we can both print it and check it.
           
           mysql -h 127.0.0.1 -P 3306 -u root -proot qa_platform -e "
             SELECT 'Testing Trigger: after_vote_insert_question' as 'Test Case';
             
-            -- Get current score of Question 1
+            -- Get current score
             SELECT score INTO @old_score FROM Question WHERE question_id = 1;
             
-            -- Insert a new Upvote (User 6 voting on Question 1)
-            -- FIX: Added answer_id to the column list so it matches the 4 values
+            -- Insert a new Upvote (matches the column count fixes from before)
             INSERT INTO Votes (vote_type, user_id, question_id, answer_id) VALUES ('upvote', 6, 1, NULL);
             
-            -- Check new score
+            -- Get new score
             SELECT score INTO @new_score FROM Question WHERE question_id = 1;
             
-            -- Assert the result
+            -- Output status (This is what we will grep for)
             SELECT 
               @old_score as 'Old Score', 
               @new_score as 'New Score', 
-              CASE 
-                WHEN @new_score = @old_score + 1 THEN '✅ PASS'
-                ELSE '❌ FAIL'
-              END as 'Status';
-              
-            -- Force CI failure if logic failed
-            SET @result = IF(@new_score = @old_score + 1, 0, 1);
-            EXIT @result;
-          "
+              IF(@new_score = @old_score + 1, '✅ PASS', '❌ FAIL') as 'Status';
+          " > test_output.txt
+
+          # Display the output in the GitHub Action logs
+          cat test_output.txt
+
+          # Fail the job if '✅ PASS' is not found in the output
+          grep -q "✅ PASS" test_output.txt
+        
   deploy:
     runs-on: ubuntu-latest
     needs: validate
