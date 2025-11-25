@@ -11,15 +11,67 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    
+    # 1. Define a Service Container
+    # This spins up a real MySQL instance just for this job
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          # We don't strictly need MYSQL_DATABASE because your script has "CREATE DATABASE"
+          # but it's good practice to ensure the service is healthy.
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
 
     steps:
       - name: ⬇️ Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🧪 Run Database Schema Validation/Tests
+      - name: 🧪 Execute Schema & Seed Data
         working-directory: ./database
-        run: echo
+        run: |
+          # 2. Run the SQL file against the service container
+          # If this step fails, it means you have syntax errors
+          mysql -h 127.0.0.1 -P 3306 -u root -proot < Praxis.sql
 
+      - name: 🕵️ Verify Logic (Trigger Test)
+        working-directory: ./database
+        shell: bash
+        run: |
+          # 3. Integration Test
+          # Run the SQL test, save output to a file so we can both print it and check it.
+          
+          mysql -h 127.0.0.1 -P 3306 -u root -proot qa_platform -e "
+            SELECT 'Testing Trigger: after_vote_insert_question' as 'Test Case';
+            
+            -- Get current score
+            SELECT score INTO @old_score FROM Question WHERE question_id = 1;
+            
+            -- Insert a new Upvote (matches the column count fixes from before)
+            INSERT INTO Votes (vote_type, user_id, question_id, answer_id) VALUES ('upvote', 6, 1, NULL);
+            
+            -- Get new score
+            SELECT score INTO @new_score FROM Question WHERE question_id = 1;
+            
+            -- Output status (This is what we will grep for)
+            SELECT 
+              @old_score as 'Old Score', 
+              @new_score as 'New Score', 
+              IF(@new_score = @old_score + 1, '✅ PASS', '❌ FAIL') as 'Status';
+          " > test_output.txt
+
+          # Display the output in the GitHub Action logs
+          cat test_output.txt
+
+          # Fail the job if '✅ PASS' is not found in the output
+          grep -q "✅ PASS" test_output.txt
+        
   deploy:
     runs-on: ubuntu-latest
     needs: validate
